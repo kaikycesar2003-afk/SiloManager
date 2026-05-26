@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="SiloManager.Application/SiloManager.Application.csproj" />
+  <Project Path="SiloManager.Domain/SiloManager.Domain.csproj" />
+  <Project Path="SiloManager.Infrastructure/SiloManager.Infrastructure.csproj" />
+  <Project Path="SiloManager.WPF/SiloManager.WPF.csproj" />
+</Solution>

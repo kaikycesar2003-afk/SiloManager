@@ -1,0 +1,127 @@
+﻿<UserControl x:Class="SiloManager.WPF.Views.Cadastros.ProdutoView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:md="http://materialdesigninxaml.net/winfx/xaml/themes"
+             Background="#F5F0E8">
+
+    <Grid Margin="8">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- Título + Toggle -->
+        <Grid Grid.Row="0" Margin="0,0,0,16">
+            <TextBlock Text="🌾 Produtos"
+                       Style="{StaticResource MaterialDesignHeadline5TextBlock}"
+                       VerticalAlignment="Center"/>
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                <RadioButton Content="Ativos"
+                             IsChecked="{Binding MostrarInativos,
+                                Converter={StaticResource InverseBoolToVisibilityConverter},
+                                Mode=OneWay}"
+                             Style="{StaticResource MaterialDesignTabRadioButton}"/>
+                <RadioButton Content="Todos"
+                             IsChecked="{Binding MostrarInativos}"
+                             Style="{StaticResource MaterialDesignTabRadioButton}"/>
+            </StackPanel>
+        </Grid>
+
+        <!-- Formulário -->
+        <Border Grid.Row="1" Background="White" CornerRadius="8"
+                Padding="24" Margin="0,0,0,16"
+                Effect="{StaticResource MaterialDesignShadowDepth1}">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="2*"/>
+                    <ColumnDefinition Width="*" MinWidth="110"/>
+                    <ColumnDefinition Width="*" MinWidth="110"/>
+                    <ColumnDefinition Width="*" MinWidth="110"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <TextBox Grid.Column="0"
+                         Text="{Binding NomeProduto, UpdateSourceTrigger=PropertyChanged}"
+                         md:HintAssist.Hint="Nome do Produto (ex: Soja)"
+                         Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                         Margin="0,0,12,0"/>
+                <TextBox Grid.Column="1"
+                         Text="{Binding UmidadeMinima, UpdateSourceTrigger=PropertyChanged}"
+                         md:HintAssist.Hint="Umidade Mín. %"
+                         Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                         Margin="0,0,12,0"/>
+                <TextBox Grid.Column="2"
+                         Text="{Binding UmidadeIdeal, UpdateSourceTrigger=PropertyChanged}"
+                         md:HintAssist.Hint="Umidade Ideal %"
+                         Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                         Margin="0,0,12,0"/>
+                <TextBox Grid.Column="3"
+                         Text="{Binding UmidadeMaxima, UpdateSourceTrigger=PropertyChanged}"
+                         md:HintAssist.Hint="Umidade Máx. %"
+                         Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                         Margin="0,0,12,0"/>
+                <Button Grid.Column="4"
+                        Command="{Binding SalvarProdutoCommand}"
+                        Style="{StaticResource MaterialDesignRaisedButton}"
+                        Height="56" Width="56" Padding="0" ToolTip="Salvar">
+                    <md:PackIcon Kind="ContentSave" Width="24" Height="24"/>
+                </Button>
+            </Grid>
+        </Border>
+
+        <!-- Lista -->
+        <Border Grid.Row="2" Background="White" CornerRadius="8"
+                Effect="{StaticResource MaterialDesignShadowDepth1}">
+            <DataGrid ItemsSource="{Binding Produtos}"
+                      AutoGenerateColumns="False" CanUserAddRows="False"
+                      IsReadOnly="True" GridLinesVisibility="Horizontal"
+                      HeadersVisibility="Column" Background="Transparent"
+                      BorderThickness="0">
+                <DataGrid.RowStyle>
+                    <Style TargetType="DataGridRow">
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding Ativo}" Value="False">
+                                <Setter Property="Opacity" Value="0.45"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </DataGrid.RowStyle>
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="Produto"       Binding="{Binding Nome}"                                  Width="2*"/>
+                    <DataGridTextColumn Header="Umidade Mín."  Binding="{Binding UmidadeMinima, StringFormat={}{0:F1}%}" Width="*"/>
+                    <DataGridTextColumn Header="Umidade Ideal" Binding="{Binding UmidadeIdeal,  StringFormat={}{0:F1}%}" Width="*"/>
+                    <DataGridTextColumn Header="Umidade Máx."  Binding="{Binding UmidadeMaxima, StringFormat={}{0:F1}%}" Width="*"/>
+                    <DataGridTemplateColumn Header="Ações" Width="120">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <StackPanel Orientation="Horizontal">
+                                    <Button Command="{Binding DataContext.EditarProdutoCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                            CommandParameter="{Binding}"
+                                            Style="{StaticResource MaterialDesignIconButton}" ToolTip="Editar"
+                                            Visibility="{Binding Ativo, Converter={StaticResource BooleanToVisibilityConverter}}">
+                                        <md:PackIcon Kind="Pencil"/>
+                                    </Button>
+                                    <Button Command="{Binding DataContext.DesativarProdutoCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                            CommandParameter="{Binding}"
+                                            Style="{StaticResource MaterialDesignIconButton}"
+                                            Foreground="Red" ToolTip="Desativar"
+                                            Visibility="{Binding Ativo, Converter={StaticResource BooleanToVisibilityConverter}}">
+                                        <md:PackIcon Kind="Delete"/>
+                                    </Button>
+                                    <Button Command="{Binding DataContext.ReativarProdutoCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                            CommandParameter="{Binding}"
+                                            Style="{StaticResource MaterialDesignIconButton}"
+                                            Foreground="Green" ToolTip="Reativar"
+                                            Visibility="{Binding Ativo, Converter={StaticResource InverseBoolToVisibilityConverter}}">
+                                        <md:PackIcon Kind="Restore"/>
+                                    </Button>
+                                </StackPanel>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                </DataGrid.Columns>
+            </DataGrid>
+        </Border>
+    </Grid>
+</UserControl>

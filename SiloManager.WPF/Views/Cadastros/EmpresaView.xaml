@@ -1,0 +1,115 @@
+﻿<UserControl x:Class="SiloManager.WPF.Views.Cadastros.EmpresaView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:md="http://materialdesigninxaml.net/winfx/xaml/themes"
+             Background="#F5F0E8">
+
+    <Grid Margin="8">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- Título + Toggle -->
+        <Grid Grid.Row="0" Margin="0,0,0,16">
+            <TextBlock Text="🏢 Empresas"
+                       Style="{StaticResource MaterialDesignHeadline5TextBlock}"
+                       VerticalAlignment="Center"/>
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                <RadioButton Content="Ativas"
+                             IsChecked="{Binding MostrarInativos,
+                                Converter={StaticResource InverseBoolToVisibilityConverter},
+                                Mode=OneWay}"
+                             Style="{StaticResource MaterialDesignTabRadioButton}"/>
+                <RadioButton Content="Todas"
+                             IsChecked="{Binding MostrarInativos}"
+                             Style="{StaticResource MaterialDesignTabRadioButton}"/>
+            </StackPanel>
+        </Grid>
+
+        <!-- Formulário -->
+        <Border Grid.Row="1" Background="White" CornerRadius="8"
+                Padding="24" Margin="0,0,0,16"
+                Effect="{StaticResource MaterialDesignShadowDepth1}">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="2*"/>
+                    <ColumnDefinition Width="*" MinWidth="180"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <TextBox Grid.Column="0"
+                         Text="{Binding NomeEmpresa, UpdateSourceTrigger=PropertyChanged}"
+                         md:HintAssist.Hint="Nome da Empresa"
+                         Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                         Margin="0,0,12,0"/>
+
+                <TextBox Grid.Column="1"
+                         Text="{Binding CnpjEmpresa, UpdateSourceTrigger=PropertyChanged}"
+                         md:HintAssist.Hint="CNPJ (opcional)"
+                         Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                         Margin="0,0,12,0"/>
+
+                <Button Grid.Column="2"
+                        Command="{Binding SalvarEmpresaCommand}"
+                        Style="{StaticResource MaterialDesignRaisedButton}"
+                        Height="56" Width="56" Padding="0" ToolTip="Salvar">
+                    <md:PackIcon Kind="ContentSave" Width="24" Height="24"/>
+                </Button>
+            </Grid>
+        </Border>
+
+        <!-- Lista -->
+        <Border Grid.Row="2" Background="White" CornerRadius="8"
+                Effect="{StaticResource MaterialDesignShadowDepth1}">
+            <DataGrid ItemsSource="{Binding Empresas}"
+                      AutoGenerateColumns="False" CanUserAddRows="False"
+                      IsReadOnly="True" GridLinesVisibility="Horizontal"
+                      HeadersVisibility="Column" Background="Transparent"
+                      BorderThickness="0">
+                <DataGrid.RowStyle>
+                    <Style TargetType="DataGridRow">
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding Ativo}" Value="False">
+                                <Setter Property="Opacity" Value="0.45"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </DataGrid.RowStyle>
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="Empresa" Binding="{Binding Nome}" Width="2*"/>
+                    <DataGridTextColumn Header="CNPJ"    Binding="{Binding CNPJ}" Width="2*"/>
+                    <DataGridTemplateColumn Header="Ações" Width="120">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <StackPanel Orientation="Horizontal">
+                                    <Button Command="{Binding DataContext.EditarEmpresaCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                            CommandParameter="{Binding}"
+                                            Style="{StaticResource MaterialDesignIconButton}" ToolTip="Editar"
+                                            Visibility="{Binding Ativo, Converter={StaticResource BooleanToVisibilityConverter}}">
+                                        <md:PackIcon Kind="Pencil"/>
+                                    </Button>
+                                    <Button Command="{Binding DataContext.DesativarEmpresaCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                            CommandParameter="{Binding}"
+                                            Style="{StaticResource MaterialDesignIconButton}"
+                                            Foreground="Red" ToolTip="Desativar"
+                                            Visibility="{Binding Ativo, Converter={StaticResource BooleanToVisibilityConverter}}">
+                                        <md:PackIcon Kind="Delete"/>
+                                    </Button>
+                                    <Button Command="{Binding DataContext.ReativarEmpresaCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                            CommandParameter="{Binding}"
+                                            Style="{StaticResource MaterialDesignIconButton}"
+                                            Foreground="Green" ToolTip="Reativar"
+                                            Visibility="{Binding Ativo, Converter={StaticResource InverseBoolToVisibilityConverter}}">
+                                        <md:PackIcon Kind="Restore"/>
+                                    </Button>
+                                </StackPanel>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                </DataGrid.Columns>
+            </DataGrid>
+        </Border>
+    </Grid>
+</UserControl>

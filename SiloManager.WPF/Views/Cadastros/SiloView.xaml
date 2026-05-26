@@ -1,0 +1,130 @@
+﻿<UserControl x:Class="SiloManager.WPF.Views.Cadastros.SiloView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:md="http://materialdesigninxaml.net/winfx/xaml/themes"
+             Background="#F5F0E8">
+
+    <Grid Margin="8">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- Título + Toggle -->
+        <Grid Grid.Row="0" Margin="0,0,0,16">
+            <TextBlock Text="🏗 Silos"
+                       Style="{StaticResource MaterialDesignHeadline5TextBlock}"
+                       VerticalAlignment="Center"/>
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                <RadioButton Content="Ativos"
+                             IsChecked="{Binding MostrarInativos,
+                                Converter={StaticResource InverseBoolToVisibilityConverter},
+                                Mode=OneWay}"
+                             Style="{StaticResource MaterialDesignTabRadioButton}"/>
+                <RadioButton Content="Todos"
+                             IsChecked="{Binding MostrarInativos}"
+                             Style="{StaticResource MaterialDesignTabRadioButton}"/>
+            </StackPanel>
+        </Grid>
+
+        <!-- Formulário -->
+        <Border Grid.Row="1" Background="White" CornerRadius="8"
+                Padding="24" Margin="0,0,0,16"
+                Effect="{StaticResource MaterialDesignShadowDepth1}">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="2*"/>
+                    <ColumnDefinition Width="2*"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <TextBox Grid.Column="0"
+                         Text="{Binding NomeSilo, UpdateSourceTrigger=PropertyChanged}"
+                         md:HintAssist.Hint="Nome do Silo (ex: Silo A)"
+                         Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                         Margin="0,0,12,0"/>
+                <ComboBox Grid.Column="1"
+                          ItemsSource="{Binding Produtos}"
+                          SelectedValue="{Binding ProdutoIdSelecionado}"
+                          SelectedValuePath="Id" DisplayMemberPath="Nome"
+                          md:HintAssist.Hint="Produto (opcional)"
+                          Style="{StaticResource MaterialDesignOutlinedComboBox}"
+                          Margin="0,0,12,0"/>
+                <CheckBox Grid.Column="2"
+                          IsChecked="{Binding IsRetrabalho}"
+                          Content="Retrabalho"
+                          Style="{StaticResource MaterialDesignCheckBox}"
+                          VerticalAlignment="Center" Margin="0,0,16,0"/>
+                <Button Grid.Column="3"
+                        Command="{Binding SalvarSiloCommand}"
+                        Style="{StaticResource MaterialDesignRaisedButton}"
+                        Height="56" Width="56" Padding="0" ToolTip="Salvar">
+                    <md:PackIcon Kind="ContentSave" Width="24" Height="24"/>
+                </Button>
+            </Grid>
+        </Border>
+
+        <!-- Lista -->
+        <Border Grid.Row="2" Background="White" CornerRadius="8"
+                Effect="{StaticResource MaterialDesignShadowDepth1}">
+            <DataGrid ItemsSource="{Binding Silos}"
+                      AutoGenerateColumns="False" CanUserAddRows="False"
+                      IsReadOnly="True" GridLinesVisibility="Horizontal"
+                      HeadersVisibility="Column" Background="Transparent"
+                      BorderThickness="0">
+                <DataGrid.RowStyle>
+                    <Style TargetType="DataGridRow">
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding Ativo}" Value="False">
+                                <Setter Property="Opacity" Value="0.45"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </DataGrid.RowStyle>
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="Silo"    Binding="{Binding Nome}"         Width="2*"/>
+                    <DataGridTextColumn Header="Produto" Binding="{Binding Produto.Nome}" Width="2*"/>
+                    <DataGridTemplateColumn Header="Retrabalho" Width="*">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <md:PackIcon Kind="Check" Foreground="Green"
+                                             HorizontalAlignment="Center"
+                                             Visibility="{Binding IsRetrabalho, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                    <DataGridTemplateColumn Header="Ações" Width="120">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <StackPanel Orientation="Horizontal">
+                                    <Button Command="{Binding DataContext.EditarSiloCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                            CommandParameter="{Binding}"
+                                            Style="{StaticResource MaterialDesignIconButton}" ToolTip="Editar"
+                                            Visibility="{Binding Ativo, Converter={StaticResource BooleanToVisibilityConverter}}">
+                                        <md:PackIcon Kind="Pencil"/>
+                                    </Button>
+                                    <Button Command="{Binding DataContext.DesativarSiloCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                            CommandParameter="{Binding}"
+                                            Style="{StaticResource MaterialDesignIconButton}"
+                                            Foreground="Red" ToolTip="Desativar"
+                                            Visibility="{Binding Ativo, Converter={StaticResource BooleanToVisibilityConverter}}">
+                                        <md:PackIcon Kind="Delete"/>
+                                    </Button>
+                                    <Button Command="{Binding DataContext.ReativarSiloCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                            CommandParameter="{Binding}"
+                                            Style="{StaticResource MaterialDesignIconButton}"
+                                            Foreground="Green" ToolTip="Reativar"
+                                            Visibility="{Binding Ativo, Converter={StaticResource InverseBoolToVisibilityConverter}}">
+                                        <md:PackIcon Kind="Restore"/>
+                                    </Button>
+                                </StackPanel>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                </DataGrid.Columns>
+            </DataGrid>
+        </Border>
+    </Grid>
+</UserControl>
