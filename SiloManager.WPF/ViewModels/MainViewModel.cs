@@ -51,8 +51,8 @@ namespace SiloManager.WPF.ViewModels
                 "Medicao" => new Views.MedicaoView
                 { DataContext = sp.GetRequiredService<MedicaoViewModel>() },
 
-                "Relatorio" => new System.Windows.Controls.TextBlock
-                { Text = "🚧 Relatórios — em breve" },
+                "Relatorio" => new Views.RelatorioView
+                { DataContext = sp.GetRequiredService<RelatorioViewModel>() },
 
                 "Produto" => new Views.Cadastros.ProdutoView
                 { DataContext = sp.GetRequiredService<ProdutoViewModel>() },

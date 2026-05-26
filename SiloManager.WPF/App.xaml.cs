@@ -80,6 +80,7 @@ namespace SiloManager.WPF
             services.AddSingleton<SerialService>();
 
             // ViewModels e Windows
+            services.AddTransient<RelatorioViewModel>();
             services.AddTransient<ConfiguracaoViewModel>();
             services.AddTransient<MedicaoViewModel>();
             services.AddTransient<EmpresaViewModel>();
