@@ -48,8 +48,8 @@ namespace SiloManager.WPF.ViewModels
 
             PaginaAtual = pagina switch
             {
-                "Medicao" => new System.Windows.Controls.TextBlock
-                { Text = "🚧 Tela de Medição — em breve" },
+                "Medicao" => new Views.MedicaoView
+                { DataContext = sp.GetRequiredService<MedicaoViewModel>() },
 
                 "Relatorio" => new System.Windows.Controls.TextBlock
                 { Text = "🚧 Relatórios — em breve" },
@@ -69,8 +69,8 @@ namespace SiloManager.WPF.ViewModels
                 "Empresa" => new Views.Cadastros.EmpresaView
                 { DataContext = sp.GetRequiredService<EmpresaViewModel>() },
 
-                "Configuracao" => new System.Windows.Controls.TextBlock
-                { Text = "🚧 Configurações — em breve" },
+                "Configuracao" => new Views.ConfiguracaoView
+                { DataContext = sp.GetRequiredService<ConfiguracaoViewModel>() },
 
                 _ => new System.Windows.Controls.TextBlock
                 { Text = "Selecione uma opção no menu" }
