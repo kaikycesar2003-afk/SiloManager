@@ -45,15 +45,20 @@ namespace SiloManager.Application.Services
             {
                 _buffer += _porta!.ReadExisting();
 
-                // Processa linha completa (terminada em \n)
-                while (_buffer.Contains('\n'))
-                {
-                    var idx = _buffer.IndexOf('\n');
-                    var linha = _buffer[..idx].Trim();
-                    _buffer = _buffer[(idx + 1)..];
+                // Gehaka pode usar \r, \n ou \r\n como terminador
+                var terminadores = new[] { "\r\n", "\r", "\n" };
 
-                    if (!string.IsNullOrWhiteSpace(linha))
-                        ProcessarLinha(linha);
+                foreach (var term in terminadores)
+                {
+                    while (_buffer.Contains(term))
+                    {
+                        var idx = _buffer.IndexOf(term);
+                        var linha = _buffer[..idx].Trim();
+                        _buffer = _buffer[(idx + term.Length)..];
+
+                        if (!string.IsNullOrWhiteSpace(linha))
+                            ProcessarLinha(linha);
+                    }
                 }
             }
             catch (Exception ex)
@@ -64,21 +69,31 @@ namespace SiloManager.Application.Services
 
         private void ProcessarLinha(string linha)
         {
-            // Formato Gehaka: "11773 ; 11.9 ; ... ; Soja ; ... ; G2000 ; ... ; 23012786001080 ; 17:14:07 ; 14/05/26 ; hash ; hash"
+            // Normaliza espaços múltiplos: "1139 ;  12.97" → "1139 ; 12.97"
+            while (linha.Contains("  ")) linha = linha.Replace("  ", " ");
+
+            // Formato Gehaka: "1139 ; 12.97 ; ... ; Soja ; ... ; G810-I ; ... ; 15051903001012 ; 18:15:07 ; 26/05/26"
             var campos = linha.Split(" ; ");
-            if (campos.Length < 16) return;
+            if (campos.Length < 15) return;
 
             try
             {
                 var cultura = CultureInfo.InvariantCulture;
 
+                // Encontra o campo do produto (texto não numérico após campo 6)
+                string nomeProduto = campos[7].Trim();
+                string modeloEquip = campos.Length > 9 ? campos[9].Trim() : string.Empty;
+                string numeroSerie = campos.Length > 13 ? campos[13].Trim() : string.Empty;
+                string horaStr = campos.Length > 14 ? campos[14].Trim() : string.Empty;
+                string dataStr = campos.Length > 15 ? campos[15].Trim() : string.Empty;
+
                 var dto = new LeituraSerialDto
                 {
                     Umidade = double.Parse(campos[1].Trim(), cultura),
-                    NomeProduto = campos[7].Trim(),
-                    ModeloEquipamento = campos[10].Trim(),
-                    NumeroSerieEquipamento = campos[13].Trim(),
-                    DataHoraEquipamento = ParseDataHora(campos[15].Trim(), campos[14].Trim()),
+                    NomeProduto = nomeProduto,
+                    ModeloEquipamento = modeloEquip,
+                    NumeroSerieEquipamento = numeroSerie,
+                    DataHoraEquipamento = ParseDataHora(dataStr, horaStr),
                     DadosBrutos = linha
                 };
 
