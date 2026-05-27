@@ -1,6 +1,5 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using DocumentFormat.OpenXml.Office2016.Drawing.ChartDrawing;
 using Microsoft.Win32;
 using SiloManager.Application.Services;
 using SiloManager.Application.Session;
@@ -20,7 +19,7 @@ namespace SiloManager.WPF.ViewModels
         private readonly IUsuarioRepository _usuarioRepo;
 
         // Filtros
-        [ObservableProperty] private DateTime _dataInicio = DateTime.Today.AddDays(-7);
+        [ObservableProperty] private DateTime _dataInicio = DateTime.Today;
         [ObservableProperty] private DateTime _dataFim = DateTime.Today;
         [ObservableProperty] private Produto? _produtoFiltro;
         [ObservableProperty] private Silo? _siloFiltro;
@@ -31,6 +30,7 @@ namespace SiloManager.WPF.ViewModels
         [ObservableProperty] private int _totalIdeais;
         [ObservableProperty] private int _totalAtencao;
         [ObservableProperty] private int _totalRetrabalho;
+        [ObservableProperty] private string _mediaIntervalo = "—";
 
         public ObservableCollection<RelatorioLinhaDto> Linhas { get; } = new();
         public ObservableCollection<Produto> Produtos { get; } = new();
@@ -102,6 +102,7 @@ namespace SiloManager.WPF.ViewModels
             TotalIdeais = _linhasCompletas.Count(l => l.Status == "Ideal");
             TotalAtencao = _linhasCompletas.Count(l => l.Status is "Atenção" or "Seco");
             TotalRetrabalho = _linhasCompletas.Count(l => l.IsRetrabalho);
+            MediaIntervalo = RelatorioService.CalcularMediaIntervalo(_linhasCompletas);
         }
 
         [RelayCommand]

@@ -114,6 +114,13 @@
                                Foreground="#C62828"/>
                 </StackPanel>
 
+                <StackPanel Grid.Column="4" Margin="0,0,24,0">
+                    <TextBlock Text="MÉDIA ENTRE MEDIÇÕES" FontSize="10" Opacity="0.5" FontWeight="Bold"/>
+                    <TextBlock Text="{Binding MediaIntervalo}" FontSize="13" FontWeight="SemiBold"
+                               Foreground="{DynamicResource MaterialDesign.Brush.Primary}"
+                               TextWrapping="Wrap"/>
+                </StackPanel>
+
                 <!-- Exportação -->
                 <StackPanel Grid.Column="5" Orientation="Horizontal" Margin="0,0,8,0">
                     <Button Command="{Binding ExportarExcelCommand}"

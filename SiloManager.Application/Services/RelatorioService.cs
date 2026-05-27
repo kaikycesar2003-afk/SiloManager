@@ -30,19 +30,71 @@ namespace SiloManager.Application.Services
     {
         public static List<RelatorioLinhaDto> Converter(IEnumerable<Medicao> medicoes)
         {
-            return medicoes.Select(m => new RelatorioLinhaDto
+            // Ordena do mais antigo para o mais recente (primeiros do dia no topo)
+            var lista = medicoes.OrderBy(m => m.DataHoraSistema).ToList();
+
+            var resultado = new List<RelatorioLinhaDto>();
+
+            // Agrupa por dia para calcular intervalo correto
+            var porDia = lista.GroupBy(m => m.DataHoraSistema.Date);
+
+            foreach (var dia in porDia)
             {
-                DataHora = m.DataHoraSistema,
-                Operador = m.Usuario?.Nome ?? "—",
-                Produto = m.Produto?.Nome ?? "—",
-                Umidade = m.Umidade,
-                Status = CalcularStatus(m),
-                Equipamento = m.Equipamento?.Nome ?? "—",
-                SiloDestino = m.SiloDestino?.Nome ?? "—",
-                Intervalo = FormatarIntervalo(m.IntervaloSegundos),
-                Observacao = m.Observacao ?? string.Empty,
-                IsRetrabalho = m.IsRetrabalho
-            }).ToList();
+                var medicoesDia = dia.OrderBy(m => m.DataHoraSistema).ToList();
+
+                for (int i = 0; i < medicoesDia.Count; i++)
+                {
+                    var m = medicoesDia[i];
+
+                    // Primeira medição do dia → intervalo = 0
+                    string intervalo = i == 0
+                        ? "—"
+                        : FormatarIntervalo((int)(m.DataHoraSistema - medicoesDia[i - 1].DataHoraSistema).TotalSeconds);
+
+                    resultado.Add(new RelatorioLinhaDto
+                    {
+                        DataHora = m.DataHoraSistema,
+                        Operador = m.Usuario?.Nome ?? "—",
+                        Produto = m.Produto?.Nome ?? "—",
+                        Umidade = m.Umidade,
+                        Status = CalcularStatus(m),
+                        Equipamento = m.Equipamento?.Nome ?? "—",
+                        SiloDestino = m.SiloDestino?.Nome ?? "—",
+                        Intervalo = intervalo,
+                        Observacao = m.Observacao ?? string.Empty,
+                        IsRetrabalho = m.IsRetrabalho
+                    });
+                }
+            }
+
+            return resultado;
+        }
+
+        // Calcula a média de intervalo do dia (ignora a primeira medição)
+        public static string CalcularMediaIntervalo(List<RelatorioLinhaDto> linhas)
+        {
+            var comIntervalo = linhas
+                .Where(l => l.Intervalo != "—" && l.Intervalo != string.Empty)
+                .ToList();
+
+            if (comIntervalo.Count == 0) return "—";
+
+            // Converte intervalos de volta para segundos para calcular média
+            var porDia = linhas.GroupBy(l => l.DataHora.Date);
+            var medias = new List<string>();
+
+            foreach (var dia in porDia)
+            {
+                var medicoesDia = dia.OrderBy(l => l.DataHora).ToList();
+                if (medicoesDia.Count < 2) continue;
+
+                var totalSegundos = (medicoesDia.Last().DataHora - medicoesDia.First().DataHora).TotalSeconds;
+                var mediaSegundos = totalSegundos / (medicoesDia.Count - 1);
+
+                medias.Add($"{dia.Key:dd/MM}: {FormatarIntervalo((int)mediaSegundos)}");
+            }
+
+            return medias.Count > 0 ? string.Join(" | ", medias) : "—";
         }
 
         private static string CalcularStatus(Medicao m)

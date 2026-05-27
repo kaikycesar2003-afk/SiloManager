@@ -112,7 +112,14 @@ namespace SiloManager.WPF.ViewModels
 
         private async void TimerTick(object? s, EventArgs e)
         {
-            var restante = await _medicaoService.VerificarTimerAsync(SessaoUsuario.Atual!.EmpresaId);
+            // Para se a sessão foi encerrada
+            if (SessaoUsuario.Atual == null)
+            {
+                _timer.Stop();
+                return;
+            }
+
+            var restante = await _medicaoService.VerificarTimerAsync(SessaoUsuario.Atual.EmpresaId);
 
             if (restante == null)
             {
@@ -188,20 +195,10 @@ namespace SiloManager.WPF.ViewModels
 
                 if (equipEncontrado != null && equipEncontrado.Id != EquipamentoSelecionado?.Id)
                 {
-                    // Correção automática
+                    // Correção automática silenciosa
                     EquipamentoSelecionado = equipEncontrado;
-                    StatusDisplay = $"⚠️ Equipamento corrigido para: {equipEncontrado.Nome}";
                 }
-                else if (equipEncontrado == null && !string.IsNullOrWhiteSpace(dto.NumeroSerieEquipamento))
-                {
-                    // Equipamento não cadastrado
-                    var r = MessageBox.Show(
-                        $"Equipamento não reconhecido.\nSérie: {dto.NumeroSerieEquipamento}\n\nDeseja continuar mesmo assim?",
-                        "Equipamento não cadastrado",
-                        MessageBoxButton.YesNo, MessageBoxImage.Warning);
-
-                    if (r != MessageBoxResult.Yes) return;
-                }
+                // Se não encontrado, continua sem bloquear — registra como não identificado
 
                 _leituraAtual = dto;
 

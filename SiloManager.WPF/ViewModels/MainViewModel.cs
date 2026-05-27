@@ -32,14 +32,22 @@ namespace SiloManager.WPF.ViewModels
         [RelayCommand]
         private void Sair()
         {
+            // Para o SerialService antes de encerrar sessão
+            var serial = App.Services.GetRequiredService<Application.Services.SerialService>();
+            serial.Desconectar();
+
             SessaoUsuario.Encerrar();
 
             var loginScope = App.Services.CreateScope();
             var login = loginScope.ServiceProvider.GetRequiredService<Views.LoginWindow>();
             login.Closed += (_, _) => loginScope.Dispose();
+
+            WpfApp.Current.MainWindow = login;
+            WpfApp.Current.ShutdownMode = System.Windows.ShutdownMode.OnMainWindowClose;
             login.Show();
 
-            WpfApp.Current.MainWindow?.Close();
+            foreach (System.Windows.Window w in WpfApp.Current.Windows.Cast<System.Windows.Window>().ToList())
+                if (w != login) w.Close();
         }
 
         private void Navegar(string pagina)

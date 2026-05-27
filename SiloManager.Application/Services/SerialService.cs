@@ -80,12 +80,14 @@ namespace SiloManager.Application.Services
             {
                 var cultura = CultureInfo.InvariantCulture;
 
-                // Encontra o campo do produto (texto não numérico após campo 6)
+                // Mapeia campos da string Gehaka G810-I:
+                // [0]=seq [1]=umidade [2-6]=outros [7]=produto [8]=codigo
+                // [9]=modelo [10]=fw [11]=fator [12]=serie [13]=hora [14]=data
                 string nomeProduto = campos[7].Trim();
                 string modeloEquip = campos.Length > 9 ? campos[9].Trim() : string.Empty;
-                string numeroSerie = campos.Length > 13 ? campos[13].Trim() : string.Empty;
-                string horaStr = campos.Length > 14 ? campos[14].Trim() : string.Empty;
-                string dataStr = campos.Length > 15 ? campos[15].Trim() : string.Empty;
+                string numeroSerie = campos.Length > 12 ? campos[12].Trim() : string.Empty;
+                string horaStr = campos.Length > 13 ? campos[13].Trim() : string.Empty;
+                string dataStr = campos.Length > 14 ? campos[14].Trim() : string.Empty;
 
                 var dto = new LeituraSerialDto
                 {
