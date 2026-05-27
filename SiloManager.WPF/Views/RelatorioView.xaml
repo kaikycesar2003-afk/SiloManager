@@ -9,20 +9,23 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
         <!-- Título -->
         <TextBlock Grid.Row="0" Text="📋 Relatórios"
                    Style="{StaticResource MaterialDesignHeadline5TextBlock}"
-                   Margin="0,0,0,16"/>
+                   Margin="0,0,0,12"/>
 
         <!-- Filtros -->
         <Border Grid.Row="1" Background="White" CornerRadius="8"
-                Padding="20" Margin="0,0,0,12"
+                Padding="16,12" Margin="0,0,0,8"
                 Effect="{StaticResource MaterialDesignShadowDepth1}">
             <Grid>
                 <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="130"/>
+                    <ColumnDefinition Width="130"/>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="*"/>
@@ -31,52 +34,116 @@
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
 
-                <DatePicker Grid.Column="0"
-                            SelectedDate="{Binding DataInicio}"
-                            md:HintAssist.Hint="Data Início"
-                            Margin="0,0,12,0"/>
+                <!-- Datas -->
+                <DatePicker Grid.Column="0" SelectedDate="{Binding DataInicio}"
+                            md:HintAssist.Hint="Início" Margin="0,0,8,0"/>
+                <DatePicker Grid.Column="1" SelectedDate="{Binding DataFim}"
+                            md:HintAssist.Hint="Fim" Margin="0,0,8,0"/>
 
-                <DatePicker Grid.Column="1"
-                            SelectedDate="{Binding DataFim}"
-                            md:HintAssist.Hint="Data Fim"
-                            Margin="0,0,12,0"/>
+                <!-- Produto com limpar -->
+                <Grid Grid.Column="2" Margin="0,0,8,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <ComboBox Grid.Column="0"
+                              ItemsSource="{Binding Produtos}"
+                              SelectedItem="{Binding ProdutoFiltro}"
+                              DisplayMemberPath="Nome"
+                              md:HintAssist.Hint="Produto"
+                              Style="{StaticResource MaterialDesignOutlinedComboBox}"/>
+                    <Button Grid.Column="1" Command="{Binding LimparProdutoCommand}"
+                            Style="{StaticResource MaterialDesignIconButton}"
+                            Width="24" Height="24" Padding="0"
+                            Visibility="{Binding TemProdutoFiltro, Converter={StaticResource BooleanToVisibilityConverter}}"
+                            ToolTip="Limpar">
+                        <md:PackIcon Kind="Close" Width="14" Height="14"/>
+                    </Button>
+                </Grid>
 
-                <ComboBox Grid.Column="2"
-                          ItemsSource="{Binding Produtos}"
-                          SelectedItem="{Binding ProdutoFiltro}"
-                          DisplayMemberPath="Nome"
-                          md:HintAssist.Hint="Produto (todos)"
+                <!-- Silo com limpar -->
+                <Grid Grid.Column="3" Margin="0,0,8,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <ComboBox Grid.Column="0"
+                              ItemsSource="{Binding Silos}"
+                              SelectedItem="{Binding SiloFiltro}"
+                              DisplayMemberPath="Nome"
+                              md:HintAssist.Hint="Silo"
+                              Style="{StaticResource MaterialDesignOutlinedComboBox}"/>
+                    <Button Grid.Column="1" Command="{Binding LimparSiloCommand}"
+                            Style="{StaticResource MaterialDesignIconButton}"
+                            Width="24" Height="24" Padding="0"
+                            Visibility="{Binding TemSiloFiltro, Converter={StaticResource BooleanToVisibilityConverter}}"
+                            ToolTip="Limpar">
+                        <md:PackIcon Kind="Close" Width="14" Height="14"/>
+                    </Button>
+                </Grid>
+
+                <!-- Secador com limpar -->
+                <Grid Grid.Column="4" Margin="0,0,8,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <ComboBox Grid.Column="0"
+                              ItemsSource="{Binding Secadores}"
+                              SelectedItem="{Binding SecadorFiltro}"
+                              DisplayMemberPath="Nome"
+                              md:HintAssist.Hint="Secador"
+                              Style="{StaticResource MaterialDesignOutlinedComboBox}"/>
+                    <Button Grid.Column="1" Command="{Binding LimparSecadorCommand}"
+                            Style="{StaticResource MaterialDesignIconButton}"
+                            Width="24" Height="24" Padding="0"
+                            Visibility="{Binding TemSecadorFiltro, Converter={StaticResource BooleanToVisibilityConverter}}"
+                            ToolTip="Limpar">
+                        <md:PackIcon Kind="Close" Width="14" Height="14"/>
+                    </Button>
+                </Grid>
+
+                <!-- Operador com limpar -->
+                <Grid Grid.Column="5" Margin="0,0,8,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <ComboBox Grid.Column="0"
+                              ItemsSource="{Binding Usuarios}"
+                              SelectedItem="{Binding UsuarioFiltro}"
+                              DisplayMemberPath="Nome"
+                              md:HintAssist.Hint="Operador"
+                              Style="{StaticResource MaterialDesignOutlinedComboBox}"/>
+                    <Button Grid.Column="1" Command="{Binding LimparOperadorCommand}"
+                            Style="{StaticResource MaterialDesignIconButton}"
+                            Width="24" Height="24" Padding="0"
+                            Visibility="{Binding TemOperadorFiltro, Converter={StaticResource BooleanToVisibilityConverter}}"
+                            ToolTip="Limpar">
+                        <md:PackIcon Kind="Close" Width="14" Height="14"/>
+                    </Button>
+                </Grid>
+
+                <!-- Status -->
+                <ComboBox Grid.Column="6"
+                          ItemsSource="{Binding OpcoesStatus}"
+                          SelectedItem="{Binding StatusFiltro}"
+                          md:HintAssist.Hint="Status"
                           Style="{StaticResource MaterialDesignOutlinedComboBox}"
-                          Margin="0,0,12,0"/>
+                          Margin="0,0,8,0"/>
 
-                <ComboBox Grid.Column="3"
-                          ItemsSource="{Binding Silos}"
-                          SelectedItem="{Binding SiloFiltro}"
-                          DisplayMemberPath="Nome"
-                          md:HintAssist.Hint="Silo (todos)"
-                          Style="{StaticResource MaterialDesignOutlinedComboBox}"
-                          Margin="0,0,12,0"/>
-
-                <ComboBox Grid.Column="4"
-                          ItemsSource="{Binding Usuarios}"
-                          SelectedItem="{Binding UsuarioFiltro}"
-                          DisplayMemberPath="Nome"
-                          md:HintAssist.Hint="Operador (todos)"
-                          Style="{StaticResource MaterialDesignOutlinedComboBox}"
-                          Margin="0,0,12,0"/>
-
-                <Button Grid.Column="5"
+                <Button Grid.Column="7"
                         Command="{Binding BuscarCommand}"
                         Style="{StaticResource MaterialDesignRaisedButton}"
-                        Height="56" Width="56" Padding="0" ToolTip="Buscar">
-                    <md:PackIcon Kind="Magnify" Width="24" Height="24"/>
+                        Height="52" Width="52" Padding="0" ToolTip="Buscar">
+                    <md:PackIcon Kind="Magnify" Width="22" Height="22"/>
                 </Button>
             </Grid>
         </Border>
 
-        <!-- Resumo + Exportação -->
+        <!-- Totalizadores + Exportação -->
         <Border Grid.Row="2" Background="White" CornerRadius="8"
-                Padding="16" Margin="0,0,0,12"
+                Padding="16,10" Margin="0,0,0,8"
                 Effect="{StaticResource MaterialDesignShadowDepth1}">
             <Grid>
                 <Grid.ColumnDefinitions>
@@ -84,76 +151,100 @@
                     <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
 
-                <!-- Totalizadores -->
-                <StackPanel Grid.Column="0" Margin="0,0,24,0">
+                <StackPanel Grid.Column="0" Margin="0,0,20,0">
                     <TextBlock Text="TOTAL" FontSize="10" Opacity="0.5" FontWeight="Bold"/>
-                    <TextBlock Text="{Binding TotalMedicoes}" FontSize="22" FontWeight="Bold"
+                    <TextBlock Text="{Binding TotalMedicoes}" FontSize="20" FontWeight="Bold"
                                Foreground="{DynamicResource MaterialDesign.Brush.Primary}"/>
                 </StackPanel>
-
-                <StackPanel Grid.Column="1" Margin="0,0,24,0">
+                <StackPanel Grid.Column="1" Margin="0,0,20,0">
                     <TextBlock Text="IDEAIS" FontSize="10" Opacity="0.5" FontWeight="Bold"/>
-                    <TextBlock Text="{Binding TotalIdeais}" FontSize="22" FontWeight="Bold"
-                               Foreground="#2E7D32"/>
+                    <TextBlock Text="{Binding TotalIdeais}" FontSize="20" FontWeight="Bold" Foreground="#2E7D32"/>
                 </StackPanel>
-
-                <StackPanel Grid.Column="2" Margin="0,0,24,0">
+                <StackPanel Grid.Column="2" Margin="0,0,20,0">
                     <TextBlock Text="ATENÇÃO" FontSize="10" Opacity="0.5" FontWeight="Bold"/>
-                    <TextBlock Text="{Binding TotalAtencao}" FontSize="22" FontWeight="Bold"
-                               Foreground="#E65100"/>
+                    <TextBlock Text="{Binding TotalAtencao}" FontSize="20" FontWeight="Bold" Foreground="#E65100"/>
                 </StackPanel>
-
-                <StackPanel Grid.Column="3" Margin="0,0,24,0">
-                    <TextBlock Text="RETRABALHO" FontSize="10" Opacity="0.5" FontWeight="Bold"/>
-                    <TextBlock Text="{Binding TotalRetrabalho}" FontSize="22" FontWeight="Bold"
-                               Foreground="#C62828"/>
+                <StackPanel Grid.Column="3" Margin="0,0,20,0">
+                    <TextBlock Text="CRÍTICO" FontSize="10" Opacity="0.5" FontWeight="Bold"/>
+                    <TextBlock Text="{Binding TotalCritico}" FontSize="20" FontWeight="Bold" Foreground="#C62828"/>
                 </StackPanel>
-
-                <StackPanel Grid.Column="4" Margin="0,0,24,0">
+                <StackPanel Grid.Column="4" Margin="0,0,20,0">
+                    <TextBlock Text="RODÍZIO" FontSize="10" Opacity="0.5" FontWeight="Bold"/>
+                    <TextBlock Text="{Binding TotalRodizio}" FontSize="20" FontWeight="Bold" Foreground="#6A1B9A"/>
+                </StackPanel>
+                <StackPanel Grid.Column="5">
                     <TextBlock Text="MÉDIA ENTRE MEDIÇÕES" FontSize="10" Opacity="0.5" FontWeight="Bold"/>
-                    <TextBlock Text="{Binding MediaIntervalo}" FontSize="13" FontWeight="SemiBold"
-                               Foreground="{DynamicResource MaterialDesign.Brush.Primary}"
-                               TextWrapping="Wrap"/>
+                    <TextBlock Text="{Binding MediaIntervalo}" FontSize="12" FontWeight="SemiBold"
+                               Foreground="{DynamicResource MaterialDesign.Brush.Primary}" TextWrapping="Wrap"/>
                 </StackPanel>
-
-                <!-- Exportação -->
-                <StackPanel Grid.Column="5" Orientation="Horizontal" Margin="0,0,8,0">
+                <StackPanel Grid.Column="6" Orientation="Horizontal" VerticalAlignment="Center">
                     <Button Command="{Binding ExportarExcelCommand}"
                             Style="{StaticResource MaterialDesignOutlinedButton}"
-                            Height="40" Margin="0,0,8,0"
+                            Height="36" Margin="0,0,8,0"
                             BorderBrush="#2E7D32" Foreground="#2E7D32">
                         <StackPanel Orientation="Horizontal">
-                            <md:PackIcon Kind="FileExcel" Width="18" Height="18" Margin="0,0,6,0"/>
-                            <TextBlock Text="Excel"/>
+                            <md:PackIcon Kind="FileExcel" Width="16" Height="16" Margin="0,0,4,0"/>
+                            <TextBlock Text="Excel" FontSize="12"/>
                         </StackPanel>
                     </Button>
-
                     <Button Command="{Binding ExportarPdfCommand}"
                             Style="{StaticResource MaterialDesignOutlinedButton}"
-                            Height="40"
-                            BorderBrush="#C62828" Foreground="#C62828">
+                            Height="36" BorderBrush="#C62828" Foreground="#C62828">
                         <StackPanel Orientation="Horizontal">
-                            <md:PackIcon Kind="FilePdfBox" Width="18" Height="18" Margin="0,0,6,0"/>
-                            <TextBlock Text="PDF"/>
+                            <md:PackIcon Kind="FilePdfBox" Width="16" Height="16" Margin="0,0,4,0"/>
+                            <TextBlock Text="PDF" FontSize="12"/>
                         </StackPanel>
                     </Button>
                 </StackPanel>
             </Grid>
         </Border>
 
+        <!-- Resumo Rodízio -->
+        <Border Grid.Row="3" Background="#F3E5F5" CornerRadius="8"
+                Padding="12,8" Margin="0,0,0,8"
+                BorderBrush="#CE93D8" BorderThickness="1"
+                Visibility="{Binding TemResumoRodizio, Converter={StaticResource BooleanToVisibilityConverter}}">
+            <StackPanel>
+                <!-- Cabeçalho clicável -->
+                <Grid>
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                        <md:PackIcon Kind="RotateRight" Foreground="#6A1B9A"
+                                     Width="16" Height="16" Margin="0,0,6,0"
+                                     VerticalAlignment="Center"/>
+                        <TextBlock Text="RESUMO RODÍZIO" FontSize="10"
+                                   FontWeight="Bold" Foreground="#6A1B9A"
+                                   VerticalAlignment="Center"/>
+                    </StackPanel>
+                    <Button HorizontalAlignment="Right"
+                            Command="{Binding ToggleResumoCommand}"
+                            Style="{StaticResource MaterialDesignIconButton}"
+                            Width="24" Height="24" Padding="0"
+                            ToolTip="Minimizar/Expandir">
+                        <md:PackIcon Kind="{Binding ResumoExpandido, Converter={StaticResource BooleanToVisibilityConverter}}"
+                                     Width="14" Height="14" Foreground="#6A1B9A"/>
+                    </Button>
+                </Grid>
+                <!-- Conteúdo expansível -->
+                <TextBlock Text="{Binding ResumoRodizio}"
+                           Foreground="#4A148C" FontSize="12"
+                           TextWrapping="Wrap" Margin="0,4,0,0"
+                           Visibility="{Binding ResumoExpandido, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+            </StackPanel>
+        </Border>
+
         <!-- Tabela -->
-        <Border Grid.Row="3" Background="White" CornerRadius="8"
+        <Border Grid.Row="4" Background="White" CornerRadius="8"
                 Effect="{StaticResource MaterialDesignShadowDepth1}">
             <DataGrid ItemsSource="{Binding Linhas}"
                       AutoGenerateColumns="False" CanUserAddRows="False"
                       IsReadOnly="True" GridLinesVisibility="Horizontal"
                       HeadersVisibility="Column" Background="Transparent"
-                      BorderThickness="0">
+                      BorderThickness="0" FontSize="12">
                 <DataGrid.RowStyle>
                     <Style TargetType="DataGridRow">
                         <Style.Triggers>
@@ -166,24 +257,20 @@
                 <DataGrid.Columns>
                     <DataGridTextColumn Header="Data/Hora"
                                         Binding="{Binding DataHora, StringFormat={}{0:dd/MM/yy HH:mm}}"
-                                        Width="110"/>
-                    <DataGridTextColumn Header="Operador"    Binding="{Binding Operador}"    Width="*"/>
-                    <DataGridTextColumn Header="Produto"     Binding="{Binding Produto}"     Width="*"/>
+                                        Width="105"/>
+                    <DataGridTextColumn Header="Operador"     Binding="{Binding Operador}"    Width="*"/>
+                    <DataGridTextColumn Header="Produto"      Binding="{Binding Produto}"     Width="*"/>
                     <DataGridTextColumn Header="Umidade"
-                                        Binding="{Binding Umidade, StringFormat={}{0:F1}%}"
-                                        Width="80"/>
-                    <DataGridTemplateColumn Header="Status" Width="90">
+                                        Binding="{Binding Umidade, StringFormat={}{0:F1}%}"   Width="75"/>
+                    <DataGridTemplateColumn Header="Status" Width="80">
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
-                                <TextBlock Text="{Binding Status}" FontWeight="SemiBold">
+                                <TextBlock Text="{Binding Status}" FontWeight="SemiBold" FontSize="12">
                                     <TextBlock.Style>
                                         <Style TargetType="TextBlock">
                                             <Style.Triggers>
                                                 <DataTrigger Binding="{Binding Status}" Value="Ideal">
                                                     <Setter Property="Foreground" Value="#2E7D32"/>
-                                                </DataTrigger>
-                                                <DataTrigger Binding="{Binding Status}" Value="Seco">
-                                                    <Setter Property="Foreground" Value="#F57F17"/>
                                                 </DataTrigger>
                                                 <DataTrigger Binding="{Binding Status}" Value="Atenção">
                                                     <Setter Property="Foreground" Value="#E65100"/>
@@ -198,10 +285,11 @@
                             </DataTemplate>
                         </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>
-                    <DataGridTextColumn Header="Equipamento" Binding="{Binding Equipamento}"  Width="*"/>
+                    <DataGridTextColumn Header="Secador"      Binding="{Binding Secador}"     Width="*"/>
+                    <DataGridTextColumn Header="Equipamento"  Binding="{Binding Equipamento}" Width="*"/>
                     <DataGridTextColumn Header="Silo Destino" Binding="{Binding SiloDestino}" Width="*"/>
-                    <DataGridTextColumn Header="Intervalo"   Binding="{Binding Intervalo}"   Width="80"/>
-                    <DataGridTextColumn Header="Observação"  Binding="{Binding Observacao}"  Width="2*"/>
+                    <DataGridTextColumn Header="Intervalo"    Binding="{Binding Intervalo}"   Width="75"/>
+                    <DataGridTextColumn Header="Obs."         Binding="{Binding Observacao}"  Width="120"/>
                 </DataGrid.Columns>
             </DataGrid>
         </Border>

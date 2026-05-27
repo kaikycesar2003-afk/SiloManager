@@ -8,6 +8,7 @@
         public int ProdutoId { get; set; }
         public int EquipamentoId { get; set; }
         public int SiloDestinoId { get; set; }
+        public int? SecadorId { get; set; }
 
         // Valores da leitura
         public double Umidade { get; set; }
@@ -32,5 +33,6 @@
         public Produto Produto { get; set; } = null!;
         public Equipamento Equipamento { get; set; } = null!;
         public Silo SiloDestino { get; set; } = null!;
+        public Secador? Secador { get; set; } = null!;
     }
 }

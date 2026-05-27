@@ -66,6 +66,7 @@ namespace SiloManager.WPF
                 opts.UseSqlite($"Data Source={dbPath}"));
 
             // Repositories
+            services.AddScoped<ISecadorRepository, SecadorRepository>();
             services.AddScoped<IEmpresaRepository, EmpresaRepository>();
             services.AddScoped<IUsuarioRepository, UsuarioRepository>();
             services.AddScoped<IProdutoRepository, ProdutoRepository>();
@@ -80,6 +81,7 @@ namespace SiloManager.WPF
             services.AddSingleton<SerialService>();
 
             // ViewModels e Windows
+            services.AddTransient<SecadorViewModel>();
             services.AddTransient<RelatorioViewModel>();
             services.AddTransient<ConfiguracaoViewModel>();
             services.AddTransient<MedicaoViewModel>();

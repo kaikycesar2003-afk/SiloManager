@@ -15,6 +15,7 @@ namespace SiloManager.Infrastructure.Data
         public DbSet<Equipamento> Equipamentos { get; set; }
         public DbSet<Medicao> Medicoes { get; set; }
         public DbSet<Configuracao> Configuracoes { get; set; }
+        public DbSet<Secador> Secadores { get; set; }
 
         protected override void OnModelCreating(ModelBuilder mb)
         {
@@ -27,6 +28,7 @@ namespace SiloManager.Infrastructure.Data
             mb.ApplyConfiguration(new EquipamentoConfiguration());
             mb.ApplyConfiguration(new MedicaoConfiguration());
             mb.ApplyConfiguration(new ConfiguracaoConfiguration());
+            mb.ApplyConfiguration(new SecadorConfiguration());
         }
     }
 }

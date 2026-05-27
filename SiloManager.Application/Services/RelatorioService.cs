@@ -20,6 +20,7 @@ namespace SiloManager.Application.Services
         public double Umidade { get; set; }
         public string Status { get; set; } = string.Empty;
         public string Equipamento { get; set; } = string.Empty;
+        public string Secador { get; set; } = string.Empty;
         public string SiloDestino { get; set; } = string.Empty;
         public string Intervalo { get; set; } = string.Empty;
         public string Observacao { get; set; } = string.Empty;
@@ -59,6 +60,7 @@ namespace SiloManager.Application.Services
                         Umidade = m.Umidade,
                         Status = CalcularStatus(m),
                         Equipamento = m.Equipamento?.Nome ?? "—",
+                        Secador = m.Secador?.Nome ?? "—",
                         SiloDestino = m.SiloDestino?.Nome ?? "—",
                         Intervalo = intervalo,
                         Observacao = m.Observacao ?? string.Empty,
@@ -100,10 +102,9 @@ namespace SiloManager.Application.Services
         private static string CalcularStatus(Medicao m)
         {
             if (m.Produto == null) return "—";
-            if (m.Umidade < m.Produto.UmidadeMinima) return "Seco";
-            if (m.Umidade <= m.Produto.UmidadeIdeal) return "Ideal";
-            if (m.Umidade <= m.Produto.UmidadeMaxima) return "Atenção";
-            return "Crítico";
+            if (m.Umidade < m.Produto.UmidadeMinima) return "Crítico";
+            if (m.Umidade <= m.Produto.UmidadeMaxima) return "Ideal";
+            return "Atenção";
         }
 
         private static string FormatarIntervalo(int? segundos)

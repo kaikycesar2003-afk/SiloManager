@@ -12,7 +12,6 @@ namespace SiloManager.Infrastructure.Data.Configurations
             b.HasKey(p => p.Id);
             b.Property(p => p.Nome).IsRequired().HasMaxLength(100);
             b.Property(p => p.UmidadeMinima).IsRequired();
-            b.Property(p => p.UmidadeIdeal).IsRequired();
             b.Property(p => p.UmidadeMaxima).IsRequired();
             b.Property(p => p.Ativo).HasDefaultValue(true);
         }

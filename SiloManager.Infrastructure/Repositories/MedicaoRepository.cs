@@ -29,6 +29,7 @@ namespace SiloManager.Infrastructure.Repositories
                 .Include(m => m.Produto)
                 .Include(m => m.SiloDestino)
                 .Include(m => m.Equipamento)
+                .Include(m => m.Secador)
                 .Where(m =>
                     m.EmpresaId == empresaId &&
                     m.DataHoraSistema >= dataInicio &&

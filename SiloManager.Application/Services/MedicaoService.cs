@@ -24,15 +24,30 @@ namespace SiloManager.Application.Services
             _configRepo = configRepo;
         }
 
-        // Verifica se o timer liberou uma nova medição
-        // Retorna: null = liberado | TimeSpan = tempo restante
-        public async Task<TimeSpan?> VerificarTimerAsync(int empresaId)
+        // Timer por secador — se secadorId informado, verifica só aquele secador
+        public async Task<TimeSpan?> VerificarTimerAsync(int empresaId, int? secadorId = null)
         {
             var config = await _configRepo.GetByEmpresaAsync(empresaId);
             var intervalo = config?.IntervaloMinimoSegundos ?? 900;
 
-            var ultima = await _medicaoRepo.GetUltimaGeralAsync(empresaId);
-            if (ultima is null) return null; // nunca mediu, libera
+            Medicao? ultima;
+
+            if (secadorId.HasValue)
+            {
+                // Timer individual por secador
+                var todasMedicoes = await _medicaoRepo.GetByFiltroAsync(
+                    empresaId, DateTime.Today, DateTime.Now);
+                ultima = todasMedicoes
+                    .Where(m => m.SecadorId == secadorId)
+                    .OrderByDescending(m => m.DataHoraSistema)
+                    .FirstOrDefault();
+            }
+            else
+            {
+                ultima = await _medicaoRepo.GetUltimaGeralAsync(empresaId);
+            }
+
+            if (ultima == null) return null;
 
             var decorrido = DateTime.Now - ultima.DataHoraSistema;
             var restante = TimeSpan.FromSeconds(intervalo) - decorrido;
@@ -43,10 +58,9 @@ namespace SiloManager.Application.Services
         // Calcula o status do semáforo baseado no produto cadastrado
         public StatusUmidade CalcularStatus(Produto produto, double umidade)
         {
-            if (umidade < produto.UmidadeMinima) return StatusUmidade.Seco;
-            if (umidade <= produto.UmidadeIdeal) return StatusUmidade.Ideal;
-            if (umidade <= produto.UmidadeMaxima) return StatusUmidade.Atencao;
-            return StatusUmidade.Critico;
+            if (umidade < produto.UmidadeMinima) return StatusUmidade.Critico;  // muito seco
+            if (umidade <= produto.UmidadeMaxima) return StatusUmidade.Ideal;    // no range
+            return StatusUmidade.Atencao;                                         // úmido demais
         }
 
         // Enriquece o DTO da serial com dados do banco (produto e status)
@@ -69,7 +83,8 @@ namespace SiloManager.Application.Services
             bool isRetrabalho,
             string dadosBrutos,
             DateTime dataHoraEquipamento,
-            string? observacao = null)
+            string? observacao = null,
+            int? secadorId = null)
         {
             var sessao = SessaoUsuario.Atual
                 ?? throw new InvalidOperationException("Nenhum usuário logado.");
@@ -87,6 +102,7 @@ namespace SiloManager.Application.Services
                 ProdutoId = produtoId,
                 EquipamentoId = equipamentoId,
                 SiloDestinoId = siloDestinoId,
+                SecadorId = secadorId,
                 Umidade = umidade,
                 DataHoraSistema = DateTime.Now,
                 DataHoraEquipamento = dataHoraEquipamento,

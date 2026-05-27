@@ -12,6 +12,7 @@
         public ICollection<Silo> Silos { get; set; } = new List<Silo>();
         public ICollection<Equipamento> Equipamentos { get; set; } = new List<Equipamento>();
         public ICollection<Medicao> Medicoes { get; set; } = new List<Medicao>();
+        public ICollection<Secador> Secadores { get; set; } = new List<Secador>();
         public Configuracao? Configuracao { get; set; }
     }
 }

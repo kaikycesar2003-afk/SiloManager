@@ -51,7 +51,6 @@ namespace SiloManager.WPF.ViewModels
         {
             if (string.IsNullOrWhiteSpace(NomeProduto) ||
                 !double.TryParse(UmidadeMinima, out var min) ||
-                !double.TryParse(UmidadeIdeal, out var ideal) ||
                 !double.TryParse(UmidadeMaxima, out var max))
             {
                 MessageBox.Show("Preencha todos os campos corretamente.", "Atenção",
@@ -59,9 +58,9 @@ namespace SiloManager.WPF.ViewModels
                 return;
             }
 
-            if (min >= ideal || ideal >= max)
+            if (min >= max)
             {
-                MessageBox.Show("Verifique os valores: Mínima < Ideal < Máxima.",
+                MessageBox.Show("Umidade Mínima deve ser menor que a Máxima.",
                     "Atenção", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
@@ -82,7 +81,6 @@ namespace SiloManager.WPF.ViewModels
                 {
                     produto.Nome = NomeProduto;
                     produto.UmidadeMinima = min;
-                    produto.UmidadeIdeal = ideal;
                     produto.UmidadeMaxima = max;
                     await _repo.UpdateAsync(produto);
                     await _repo.SaveChangesAsync();
@@ -95,7 +93,6 @@ namespace SiloManager.WPF.ViewModels
                 {
                     Nome = NomeProduto,
                     UmidadeMinima = min,
-                    UmidadeIdeal = ideal,
                     UmidadeMaxima = max,
                     Ativo = true
                 });
@@ -112,7 +109,6 @@ namespace SiloManager.WPF.ViewModels
             _editandoId = p.Id;
             NomeProduto = p.Nome;
             UmidadeMinima = p.UmidadeMinima.ToString("F1");
-            UmidadeIdeal = p.UmidadeIdeal.ToString("F1");
             UmidadeMaxima = p.UmidadeMaxima.ToString("F1");
         }
 
@@ -142,7 +138,6 @@ namespace SiloManager.WPF.ViewModels
         {
             NomeProduto = string.Empty;
             UmidadeMinima = string.Empty;
-            UmidadeIdeal = string.Empty;
             UmidadeMaxima = string.Empty;
             _editandoId = null;
         }

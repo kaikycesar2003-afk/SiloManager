@@ -20,21 +20,26 @@ namespace SiloManager.WPF.ViewModels
         private readonly ISiloRepository _siloRepo;
         private readonly IProdutoRepository _produtoRepo;
         private readonly IMedicaoRepository _medicaoRepo;
+        private readonly ISecadorRepository _secadorRepo;
         private readonly MedicaoService _medicaoService;
         private readonly SerialService _serialService;
         private readonly IConfiguracaoRepository _configRepo;
 
         private DispatcherTimer _timer = new();
-        private DateTime? _liberadoEm;
         private int _intervaloSegundos = 900;
         private LeituraSerialDto? _leituraAtual;
+        private bool _escutandoSerial;
 
-        // ═══ Equipamento ═══
-        [ObservableProperty] private Equipamento? _equipamentoSelecionado;
-        [ObservableProperty] private bool _naoConectado = true;
-        [ObservableProperty] private string _textoBotaoConectar = "CONECTAR";
-        [ObservableProperty] private string _iconeConectar = "SerialPort";
-        [ObservableProperty] private Brush _corBotaoConectar = new SolidColorBrush(Color.FromRgb(46, 125, 50));
+        // ═══ Equipamento (fixo) ═══
+        [ObservableProperty] private Equipamento? _equipamentoFixo;
+
+        // ═══ Secador ═══
+        [ObservableProperty] private Secador? _secadorSelecionado;
+        [ObservableProperty] private bool _temMaisDeUmSecador;
+
+        // ═══ Estado do botão CAPTURAR ═══
+        [ObservableProperty] private bool _capturarHabilitado;
+        [ObservableProperty] private string _statusCapturar = "Selecione um secador";
 
         // ═══ Leitura ═══
         [ObservableProperty] private string _umidadeDisplay = "-- %";
@@ -50,21 +55,23 @@ namespace SiloManager.WPF.ViewModels
         [ObservableProperty] private Silo? _siloDestinoSelecionado;
         [ObservableProperty] private string _observacao = string.Empty;
 
-        // ═══ Timer ═══
+        // ═══ Timer visual ═══
         [ObservableProperty] private string _timerDisplay = "00:00";
-        [ObservableProperty] private string _statusTimer = "Carregando...";
+        [ObservableProperty] private string _statusTimer = "Selecione um secador";
         [ObservableProperty] private double _progressoTimer;
         [ObservableProperty] private Brush _corTimer = Brushes.Gray;
 
         public ObservableCollection<Equipamento> Equipamentos { get; } = new();
         public ObservableCollection<Silo> SilosDisponiveis { get; } = new();
         public ObservableCollection<Medicao> UltimasMedicoes { get; } = new();
+        public ObservableCollection<Secador> Secadores { get; } = new();
 
         public MedicaoViewModel(
             IEquipamentoRepository equipRepo,
             ISiloRepository siloRepo,
             IProdutoRepository produtoRepo,
             IMedicaoRepository medicaoRepo,
+            ISecadorRepository secadorRepo,
             MedicaoService medicaoService,
             SerialService serialService,
             IConfiguracaoRepository configRepo)
@@ -73,6 +80,7 @@ namespace SiloManager.WPF.ViewModels
             _siloRepo = siloRepo;
             _produtoRepo = produtoRepo;
             _medicaoRepo = medicaoRepo;
+            _secadorRepo = secadorRepo;
             _medicaoService = medicaoService;
             _serialService = serialService;
             _configRepo = configRepo;
@@ -87,53 +95,76 @@ namespace SiloManager.WPF.ViewModels
         {
             var empresaId = SessaoUsuario.Atual!.EmpresaId;
 
-            // Carrega configuração do timer
             var config = await _configRepo.GetByEmpresaAsync(empresaId);
             _intervaloSegundos = config?.IntervaloMinimoSegundos ?? 900;
 
-            // Carrega equipamentos
+            // Carrega equipamentos e fixa o primeiro
             var equips = await _equipRepo.GetByEmpresaAsync(empresaId);
             Equipamentos.Clear();
             foreach (var e in equips) Equipamentos.Add(e);
+            EquipamentoFixo = Equipamentos.FirstOrDefault();
 
-            // Carrega últimas medições
+            // Conecta automaticamente se tiver equipamento
+            if (EquipamentoFixo != null)
+            {
+                try
+                {
+                    _serialService.Conectar(EquipamentoFixo.PortaCOM, EquipamentoFixo.BaudRate);
+                }
+                catch { /* porta não disponível no momento */ }
+            }
+
+            // Carrega secadores
+            var secadores = await _secadorRepo.GetByEmpresaAsync(empresaId);
+            Secadores.Clear();
+            foreach (var s in secadores) Secadores.Add(s);
+
+            TemMaisDeUmSecador = Secadores.Count > 1;
+
+            // Auto-seleciona se só 1 secador
+            if (Secadores.Count == 1)
+                SecadorSelecionado = Secadores[0];
+
             await CarregarUltimasMedicoesAsync();
-
-            // Inicia timer
             IniciarTimer();
         }
 
-        private void IniciarTimer()
-        {
-            _timer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
-            _timer.Tick += TimerTick;
-            _timer.Start();
-        }
+        // Ao trocar de secador → reavalia timer imediatamente
+        partial void OnSecadorSelecionadoChanged(Secador? value)
+            => _ = AvaliarTimerSecadorAsync();
 
-        private async void TimerTick(object? s, EventArgs e)
+        private async Task AvaliarTimerSecadorAsync()
         {
-            // Para se a sessão foi encerrada
-            if (SessaoUsuario.Atual == null)
+            if (SecadorSelecionado == null)
             {
-                _timer.Stop();
+                CapturarHabilitado = false;
+                StatusCapturar = "Selecione um secador";
+                TimerDisplay = "--:--";
+                StatusTimer = "Selecione um secador";
+                CorTimer = Brushes.Gray;
                 return;
             }
 
-            var restante = await _medicaoService.VerificarTimerAsync(SessaoUsuario.Atual.EmpresaId);
+            var restante = await _medicaoService.VerificarTimerAsync(
+                SessaoUsuario.Atual!.EmpresaId,
+                SecadorSelecionado.Id);
 
             if (restante == null)
             {
-                // Liberado
+                CapturarHabilitado = true;
+                StatusCapturar = "✅ Pronto para capturar";
                 TimerDisplay = "LIVRE";
-                StatusTimer = "✅ Medição liberada";
+                StatusTimer = $"✅ {SecadorSelecionado.Nome} liberado";
                 ProgressoTimer = 100;
                 CorTimer = new SolidColorBrush(Color.FromRgb(46, 125, 50));
             }
             else
             {
                 var ts = restante.Value;
+                CapturarHabilitado = false;
+                StatusCapturar = $"⏳ Aguarde {(int)ts.TotalMinutes:00}:{ts.Seconds:00}";
                 TimerDisplay = $"{(int)ts.TotalMinutes:00}:{ts.Seconds:00}";
-                StatusTimer = "⏳ Aguarde para medir";
+                StatusTimer = $"⏳ {SecadorSelecionado.Nome} bloqueado";
                 ProgressoTimer = 100 - (ts.TotalSeconds / _intervaloSegundos * 100);
                 CorTimer = ts.TotalMinutes < 2
                     ? new SolidColorBrush(Color.FromRgb(245, 124, 0))
@@ -141,78 +172,55 @@ namespace SiloManager.WPF.ViewModels
             }
         }
 
-        [RelayCommand]
-        private void Conectar()
+        private void IniciarTimer()
         {
-            if (_serialService.Conectado)
+            _timer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
+            _timer.Tick += async (s, e) =>
             {
-                _serialService.Desconectar();
-                NaoConectado = true;
-                TextoBotaoConectar = "CONECTAR";
-                IconeConectar = "SerialPort";
-                CorBotaoConectar = new SolidColorBrush(Color.FromRgb(46, 125, 50));
-                StatusDisplay = "Desconectado.";
-            }
-            else
-            {
-                if (EquipamentoSelecionado == null)
-                {
-                    MessageBox.Show("Selecione um equipamento.", "Atenção",
-                        MessageBoxButton.OK, MessageBoxImage.Warning);
-                    return;
-                }
-
-                try
-                {
-                    _serialService.Conectar(
-                        EquipamentoSelecionado.PortaCOM,
-                        EquipamentoSelecionado.BaudRate);
-
-                    NaoConectado = false;
-                    TextoBotaoConectar = "DESCONECTAR";
-                    IconeConectar = "Close";
-                    CorBotaoConectar = new SolidColorBrush(Color.FromRgb(211, 47, 47));
-                    StatusDisplay = $"✅ Conectado em {EquipamentoSelecionado.PortaCOM} — Aguardando leitura...";
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show($"Erro ao conectar: {ex.Message}", "Erro",
-                        MessageBoxButton.OK, MessageBoxImage.Error);
-                }
-            }
+                if (SessaoUsuario.Atual == null) { _timer.Stop(); return; }
+                await AvaliarTimerSecadorAsync();
+            };
+            _timer.Start();
         }
 
+        // ═══ Capturar — inicia escuta da serial ═══
+        [RelayCommand(CanExecute = nameof(CapturarHabilitado))]
+        private void Capturar()
+        {
+            _escutandoSerial = true;
+            StatusDisplay = $"🎯 Aguardando leitura do {SecadorSelecionado?.Nome}...";
+            LimparLeitura(manterSecador: true);
+        }
+
+        partial void OnCapturarHabilitadoChanged(bool value)
+            => CapturarCommand.NotifyCanExecuteChanged();
+
+        // ═══ Recebe leitura da serial ═══
         private async void OnLeituraRecebida(LeituraSerialDto dto)
         {
-            // Roda na UI thread
+            // Ignora se não está no modo de captura
+            if (!_escutandoSerial) return;
+
             await WpfApp.Current.Dispatcher.InvokeAsync(async () =>
             {
-                // Enriquece com dados do banco
+                _escutandoSerial = false;
+
                 dto = await _medicaoService.EnriquecerLeituraAsync(dto);
 
-                // Verifica equipamento pelo nº de série
                 var equipEncontrado = await _equipRepo.GetByNumeroSerieAsync(dto.NumeroSerieEquipamento);
-
-                if (equipEncontrado != null && equipEncontrado.Id != EquipamentoSelecionado?.Id)
-                {
-                    // Correção automática silenciosa
-                    EquipamentoSelecionado = equipEncontrado;
-                }
-                // Se não encontrado, continua sem bloquear — registra como não identificado
+                if (equipEncontrado != null && equipEncontrado.Id != EquipamentoFixo?.Id)
+                    EquipamentoFixo = equipEncontrado;
 
                 _leituraAtual = dto;
 
-                // Atualiza UI
                 UmidadeDisplay = $"{dto.Umidade:F1}%";
                 ProdutoDetectado = dto.NomeProduto;
-                EquipamentoDetectado = EquipamentoSelecionado?.Nome ?? $"Não identificado ({dto.NumeroSerieEquipamento})";
+                EquipamentoDetectado = EquipamentoFixo?.Nome
+                                       ?? $"Não identificado ({dto.NumeroSerieEquipamento})";
                 HoraSistema = DateTime.Now.ToString("HH:mm:ss");
                 HoraEquipamento = dto.DataHoraEquipamento.ToString("HH:mm:ss");
 
-                // Semáforo
                 AtualizarSemaforo(dto.Status);
-
-                // Carrega silos disponíveis para o produto
                 await CarregarSilosAsync(dto.NomeProduto);
 
                 LeituraRecebida = true;
@@ -224,9 +232,8 @@ namespace SiloManager.WPF.ViewModels
             (CorSemaforo, StatusDisplay) = status switch
             {
                 StatusUmidade.Ideal => (new SolidColorBrush(Color.FromRgb(46, 125, 50)), "✅ IDEAL"),
-                StatusUmidade.Seco => (new SolidColorBrush(Color.FromRgb(245, 124, 0)), "⚠️ SECO"),
-                StatusUmidade.Atencao => (new SolidColorBrush(Color.FromRgb(245, 124, 0)), "⚠️ ATENÇÃO"),
-                StatusUmidade.Critico => (new SolidColorBrush(Color.FromRgb(211, 47, 47)), "🔴 CRÍTICO — Retrabalho"),
+                StatusUmidade.Critico => (new SolidColorBrush(Color.FromRgb(211, 47, 47)), "🔴 CRÍTICO — Muito seco"),
+                StatusUmidade.Atencao => (new SolidColorBrush(Color.FromRgb(245, 124, 0)), "⚠️ ATENÇÃO — Úmido"),
                 _ => (Brushes.Gray, "Aguardando leitura...")
             };
         }
@@ -237,15 +244,15 @@ namespace SiloManager.WPF.ViewModels
             var produto = await _produtoRepo.GetByNomeAsync(nomeProduto);
 
             SilosDisponiveis.Clear();
-
             if (produto != null)
             {
                 var silos = await _siloRepo.GetDestinosDisponiveisAsync(empresaId, produto.Id);
                 foreach (var s in silos) SilosDisponiveis.Add(s);
             }
 
-            // Se crítico, pré-seleciona retrabalho
-            if (_leituraAtual?.Status == StatusUmidade.Critico)
+            // Atenção (úmido) → pré-seleciona Retrabalho
+            // Crítico (seco) e Ideal → pré-seleciona primeiro Silo normal
+            if (_leituraAtual?.Status == StatusUmidade.Atencao)
                 SiloDestinoSelecionado = SilosDisponiveis.FirstOrDefault(s => s.IsRetrabalho);
             else
                 SiloDestinoSelecionado = SilosDisponiveis.FirstOrDefault(s => !s.IsRetrabalho);
@@ -256,7 +263,7 @@ namespace SiloManager.WPF.ViewModels
         {
             if (_leituraAtual == null)
             {
-                MessageBox.Show("Nenhuma leitura recebida.", "Atenção",
+                MessageBox.Show("Nenhuma leitura capturada.", "Atenção",
                     MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
@@ -268,14 +275,10 @@ namespace SiloManager.WPF.ViewModels
                 return;
             }
 
-            // Verifica timer
-            var restante = await _medicaoService.VerificarTimerAsync(SessaoUsuario.Atual!.EmpresaId);
-            if (restante != null)
+            if (Secadores.Count > 0 && SecadorSelecionado == null)
             {
-                var ts = restante.Value;
-                MessageBox.Show(
-                    $"Aguarde {(int)ts.TotalMinutes:00}:{ts.Seconds:00} para a próxima medição.",
-                    "Timer ativo", MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBox.Show("Selecione o secador.", "Atenção",
+                    MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
 
@@ -292,39 +295,40 @@ namespace SiloManager.WPF.ViewModels
             await _medicaoService.SalvarMedicaoAsync(
                 empresaId: empresaId,
                 produtoId: produto.Id,
-                equipamentoId: EquipamentoSelecionado!.Id,
+                equipamentoId: EquipamentoFixo!.Id,
                 siloDestinoId: SiloDestinoSelecionado.Id,
                 umidade: _leituraAtual.Umidade,
                 isRetrabalho: SiloDestinoSelecionado.IsRetrabalho,
                 dadosBrutos: _leituraAtual.DadosBrutos,
                 dataHoraEquipamento: _leituraAtual.DataHoraEquipamento,
-                observacao: Observacao);
+                observacao: Observacao,
+                secadorId: SecadorSelecionado?.Id);
 
             MessageBox.Show("✅ Medição registrada com sucesso!", "Sucesso",
                 MessageBoxButton.OK, MessageBoxImage.Information);
 
-            // Limpa para próxima medição
-            LimparLeitura();
+            // Reseta tudo e trava CAPTURAR
+            LimparLeitura(manterSecador: true);
             await CarregarUltimasMedicoesAsync();
+            await AvaliarTimerSecadorAsync();
         }
 
         private async Task CarregarUltimasMedicoesAsync()
         {
             var empresaId = SessaoUsuario.Atual!.EmpresaId;
             var lista = await _medicaoRepo.GetByFiltroAsync(
-                empresaId,
-                DateTime.Today,
-                DateTime.Now);
+                empresaId, DateTime.Today, DateTime.Now);
 
             UltimasMedicoes.Clear();
             foreach (var m in lista.Take(10)) UltimasMedicoes.Add(m);
         }
 
-        private void LimparLeitura()
+        private void LimparLeitura(bool manterSecador = false)
         {
             _leituraAtual = null;
+            _escutandoSerial = false;
             UmidadeDisplay = "-- %";
-            StatusDisplay = "Aguardando próxima leitura...";
+            StatusDisplay = "Aguardando leitura...";
             ProdutoDetectado = "—";
             EquipamentoDetectado = "—";
             HoraSistema = "—";
@@ -334,6 +338,9 @@ namespace SiloManager.WPF.ViewModels
             Observacao = string.Empty;
             SiloDestinoSelecionado = null;
             SilosDisponiveis.Clear();
+
+            if (!manterSecador)
+                SecadorSelecionado = Secadores.Count == 1 ? Secadores[0] : null;
         }
 
         private void OnErroSerial(string erro) =>

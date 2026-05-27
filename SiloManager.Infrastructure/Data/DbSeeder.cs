@@ -13,7 +13,7 @@ namespace SiloManager.Infrastructure.Data
             // Empresa padrão
             var empresa = new Empresa
             {
-                Nome = "Empresa Padrão",
+                Nome = "Seedry",
                 CNPJ = "00.000.000/0001-00",
                 Ativo = true
             };
@@ -35,9 +35,9 @@ namespace SiloManager.Infrastructure.Data
             // Produtos padrão
             var produtos = new List<Produto>
             {
-                new() { Nome = "Soja",  UmidadeMinima = 10.0, UmidadeIdeal = 12.5, UmidadeMaxima = 14.0 },
-                new() { Nome = "Milho", UmidadeMinima = 12.0, UmidadeIdeal = 13.5, UmidadeMaxima = 15.5 },
-                new() { Nome = "Trigo", UmidadeMinima = 11.0, UmidadeIdeal = 13.0, UmidadeMaxima = 15.0 },
+                new() { Nome = "Soja",  UmidadeMinima = 14.0, UmidadeMaxima = 15.0 },
+                new() { Nome = "Milho", UmidadeMinima = 13.0, UmidadeMaxima = 15.5 },
+                new() { Nome = "Trigo", UmidadeMinima = 13.0, UmidadeMaxima = 15.0 },
             };
             db.Produtos.AddRange(produtos);
 

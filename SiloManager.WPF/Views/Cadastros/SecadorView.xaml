@@ -1,4 +1,4 @@
-﻿<UserControl x:Class="SiloManager.WPF.Views.Cadastros.ProdutoView"
+﻿<UserControl x:Class="SiloManager.WPF.Views.Cadastros.SecadorView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:md="http://materialdesigninxaml.net/winfx/xaml/themes"
@@ -13,7 +13,7 @@
 
         <!-- Título + Toggle -->
         <Grid Grid.Row="0" Margin="0,0,0,16">
-            <TextBlock Text="🌾 Produtos"
+            <TextBlock Text="🌡 Secadores"
                        Style="{StaticResource MaterialDesignHeadline5TextBlock}"
                        VerticalAlignment="Center"/>
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
@@ -34,29 +34,18 @@
                 Effect="{StaticResource MaterialDesignShadowDepth1}">
             <Grid>
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="2*"/>
-                    <ColumnDefinition Width="*" MinWidth="140"/>
-                    <ColumnDefinition Width="*" MinWidth="140"/>
+                    <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
 
                 <TextBox Grid.Column="0"
-                         Text="{Binding NomeProduto, UpdateSourceTrigger=PropertyChanged}"
-                         md:HintAssist.Hint="Nome do Produto (ex: Soja)"
+                         Text="{Binding NomeSecador, UpdateSourceTrigger=PropertyChanged}"
+                         md:HintAssist.Hint="Nome do Secador (ex: Secador 1)"
                          Style="{StaticResource MaterialDesignOutlinedTextBox}"
                          Margin="0,0,12,0"/>
-                <TextBox Grid.Column="1"
-                         Text="{Binding UmidadeMinima, UpdateSourceTrigger=PropertyChanged}"
-                         md:HintAssist.Hint="Umidade Mín. % (Crítico)"
-                         Style="{StaticResource MaterialDesignOutlinedTextBox}"
-                         Margin="0,0,12,0"/>
-                <TextBox Grid.Column="2"
-                         Text="{Binding UmidadeMaxima, UpdateSourceTrigger=PropertyChanged}"
-                         md:HintAssist.Hint="Umidade Máx. % (Atenção)"
-                         Style="{StaticResource MaterialDesignOutlinedTextBox}"
-                         Margin="0,0,12,0"/>
-                <Button Grid.Column="3"
-                        Command="{Binding SalvarProdutoCommand}"
+
+                <Button Grid.Column="1"
+                        Command="{Binding SalvarSecadorCommand}"
                         Style="{StaticResource MaterialDesignRaisedButton}"
                         Height="56" Width="56" Padding="0" ToolTip="Salvar">
                     <md:PackIcon Kind="ContentSave" Width="24" Height="24"/>
@@ -67,7 +56,7 @@
         <!-- Lista -->
         <Border Grid.Row="2" Background="White" CornerRadius="8"
                 Effect="{StaticResource MaterialDesignShadowDepth1}">
-            <DataGrid ItemsSource="{Binding Produtos}"
+            <DataGrid ItemsSource="{Binding Secadores}"
                       AutoGenerateColumns="False" CanUserAddRows="False"
                       IsReadOnly="True" GridLinesVisibility="Horizontal"
                       HeadersVisibility="Column" Background="Transparent"
@@ -82,27 +71,25 @@
                     </Style>
                 </DataGrid.RowStyle>
                 <DataGrid.Columns>
-                    <DataGridTextColumn Header="Produto"       Binding="{Binding Nome}"                                  Width="2*"/>
-                    <DataGridTextColumn Header="Umidade Mín."  Binding="{Binding UmidadeMinima, StringFormat={}{0:F1}%}" Width="*"/>
-                    <DataGridTextColumn Header="Umidade Máx."  Binding="{Binding UmidadeMaxima, StringFormat={}{0:F1}%}" Width="*"/>
+                    <DataGridTextColumn Header="Nome" Binding="{Binding Nome}" Width="*"/>
                     <DataGridTemplateColumn Header="Ações" Width="120">
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
                                 <StackPanel Orientation="Horizontal">
-                                    <Button Command="{Binding DataContext.EditarProdutoCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                    <Button Command="{Binding DataContext.EditarSecadorCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
                                             CommandParameter="{Binding}"
                                             Style="{StaticResource MaterialDesignIconButton}" ToolTip="Editar"
                                             Visibility="{Binding Ativo, Converter={StaticResource BooleanToVisibilityConverter}}">
                                         <md:PackIcon Kind="Pencil"/>
                                     </Button>
-                                    <Button Command="{Binding DataContext.DesativarProdutoCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                    <Button Command="{Binding DataContext.DesativarSecadorCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
                                             CommandParameter="{Binding}"
                                             Style="{StaticResource MaterialDesignIconButton}"
                                             Foreground="Red" ToolTip="Desativar"
                                             Visibility="{Binding Ativo, Converter={StaticResource BooleanToVisibilityConverter}}">
                                         <md:PackIcon Kind="Delete"/>
                                     </Button>
-                                    <Button Command="{Binding DataContext.ReativarProdutoCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                    <Button Command="{Binding DataContext.ReativarSecadorCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
                                             CommandParameter="{Binding}"
                                             Style="{StaticResource MaterialDesignIconButton}"
                                             Foreground="Green" ToolTip="Reativar"

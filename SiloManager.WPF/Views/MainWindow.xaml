@@ -113,6 +113,14 @@
                             Foreground="#388E3C" FontSize="13"
                             Visibility="{Binding IsAdminOuGerente, Converter={StaticResource BooleanToVisibilityConverter}}"/>
 
+                    <Button Content="  🌡  Secadores"
+                            Command="{Binding NavCommand}" CommandParameter="Secador"
+                            Style="{StaticResource MaterialDesignFlatButton}"
+                            HorizontalContentAlignment="Left"
+                            HorizontalAlignment="Stretch" Height="44"
+                            Foreground="#388E3C" FontSize="13"
+                            Visibility="{Binding IsAdminOuGerente, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+
                     <Button Content="  👥  Usuários"
                             Command="{Binding NavCommand}" CommandParameter="Usuario"
                             Style="{StaticResource MaterialDesignFlatButton}"

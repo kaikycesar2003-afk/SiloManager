@@ -19,7 +19,7 @@ namespace SiloManager.WPF.Services
             var cabecalhos = new[]
             {
                 "Data/Hora", "Operador", "Produto", "Umidade (%)",
-                "Status", "Equipamento", "Silo Destino", "Intervalo", "Observação"
+                "Status", "Secador", "Equipamento", "Silo Destino", "Intervalo", "Observação"
             };
 
             for (int i = 0; i < cabecalhos.Length; i++)
@@ -43,10 +43,11 @@ namespace SiloManager.WPF.Services
                 ws.Cell(row, 3).Value = l.Produto;
                 ws.Cell(row, 4).Value = l.Umidade;
                 ws.Cell(row, 5).Value = l.Status;
-                ws.Cell(row, 6).Value = l.Equipamento;
-                ws.Cell(row, 7).Value = l.SiloDestino;
-                ws.Cell(row, 8).Value = l.Intervalo;
-                ws.Cell(row, 9).Value = l.Observacao;
+                ws.Cell(row, 6).Value = l.Secador;
+                ws.Cell(row, 7).Value = l.Equipamento;
+                ws.Cell(row, 8).Value = l.SiloDestino;
+                ws.Cell(row, 9).Value = l.Intervalo;
+                ws.Cell(row, 10).Value = l.Observacao;
 
                 // Cor por status
                 var corStatus = l.Status switch
@@ -120,6 +121,7 @@ namespace SiloManager.WPF.Services
                             c.RelativeColumn(2);   // Produto
                             c.ConstantColumn(55);  // Umidade
                             c.ConstantColumn(50);  // Status
+                            c.RelativeColumn(2);   // Secador
                             c.RelativeColumn(2);   // Equipamento
                             c.RelativeColumn(2);   // Silo
                             c.ConstantColumn(50);  // Intervalo
@@ -136,7 +138,7 @@ namespace SiloManager.WPF.Services
                             foreach (var cab in new[]
                             {
                                 "Data/Hora","Operador","Produto","Umidade",
-                                "Status","Equipamento","Silo","Intervalo","Observação"
+                                "Status","Secador","Equipamento","Silo","Intervalo","Observação"
                             })
                             {
                                 h.Cell().Element(CabStyle)
@@ -171,6 +173,7 @@ namespace SiloManager.WPF.Services
                                 .Text($"{l.Umidade:F1}%").Bold();
                             table.Cell().Element(CellStyle)
                                 .Text(l.Status).FontColor(corStatus).Bold();
+                            table.Cell().Element(CellStyle).Text(l.Secador);
                             table.Cell().Element(CellStyle).Text(l.Equipamento);
                             table.Cell().Element(CellStyle).Text(l.SiloDestino);
                             table.Cell().Element(CellStyle).Text(l.Intervalo);

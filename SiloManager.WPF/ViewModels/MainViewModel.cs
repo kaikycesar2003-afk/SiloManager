@@ -77,6 +77,9 @@ namespace SiloManager.WPF.ViewModels
                 "Empresa" => new Views.Cadastros.EmpresaView
                 { DataContext = sp.GetRequiredService<EmpresaViewModel>() },
 
+                "Secador" => new Views.Cadastros.SecadorView
+                { DataContext = sp.GetRequiredService<SecadorViewModel>() },
+
                 "Configuracao" => new Views.ConfiguracaoView
                 { DataContext = sp.GetRequiredService<ConfiguracaoViewModel>() },
 

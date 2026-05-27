@@ -42,6 +42,11 @@ namespace SiloManager.Infrastructure.Data.Configurations
              .WithMany(s => s.Medicoes)
              .HasForeignKey(m => m.SiloDestinoId)
              .OnDelete(DeleteBehavior.Restrict);
+
+            b.HasOne(m => m.Secador)
+             .WithMany(s => s.Medicoes)
+             .HasForeignKey(m => m.SecadorId)
+             .OnDelete(DeleteBehavior.SetNull);
         }
     }
 }

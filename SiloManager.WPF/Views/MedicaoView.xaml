@@ -22,9 +22,7 @@
                    Style="{StaticResource MaterialDesignHeadline5TextBlock}"
                    Margin="0,0,0,16"/>
 
-        <!-- ═══ PAINEL ESQUERDO — Leitura ═══ -->
-
-        <!-- Seleção de Equipamento -->
+        <!-- ═══ Equipamento fixo + Secador + Capturar ═══ -->
         <Border Grid.Row="1" Grid.Column="0"
                 Background="White" CornerRadius="8"
                 Padding="20" Margin="0,0,12,12"
@@ -32,34 +30,45 @@
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
 
-                <ComboBox Grid.Column="0"
-                          ItemsSource="{Binding Equipamentos}"
-                          SelectedItem="{Binding EquipamentoSelecionado}"
-                          DisplayMemberPath="Nome"
-                          md:HintAssist.Hint="Selecione o Equipamento"
-                          Style="{StaticResource MaterialDesignOutlinedComboBox}"
-                          Margin="0,0,12,0"
-                          IsEnabled="{Binding NaoConectado}"/>
+                <!-- Equipamento fixo (somente leitura) -->
+                <StackPanel Grid.Column="0" Margin="0,0,12,0" VerticalAlignment="Center">
+                    <TextBlock Text="EQUIPAMENTO" FontSize="10"
+                               Opacity="0.5" FontWeight="Bold" Margin="0,0,0,4"/>
+                    <TextBlock Text="{Binding EquipamentoFixo.Nome}"
+                               FontSize="16" FontWeight="SemiBold"
+                               Foreground="{DynamicResource MaterialDesign.Brush.Primary}"/>
+                    <TextBlock Text="{Binding EquipamentoFixo.PortaCOM}"
+                               FontSize="12" Opacity="0.6"/>
+                </StackPanel>
 
-                <Button Grid.Column="1"
-                        Command="{Binding ConectarCommand}"
+                <!-- Secador -->
+                <ComboBox Grid.Column="1"
+                          ItemsSource="{Binding Secadores}"
+                          SelectedItem="{Binding SecadorSelecionado}"
+                          DisplayMemberPath="Nome"
+                          md:HintAssist.Hint="Selecione o Secador *"
+                          Style="{StaticResource MaterialDesignOutlinedComboBox}"
+                          Margin="0,0,12,0"/>
+
+                <!-- Botão CAPTURAR -->
+                <Button Grid.Column="2"
+                        Command="{Binding CapturarCommand}"
                         Style="{StaticResource MaterialDesignRaisedButton}"
-                        Height="56" MinWidth="120"
-                        Background="{Binding CorBotaoConectar}"
-                        BorderBrush="{Binding CorBotaoConectar}">
+                        Height="56" MinWidth="140"
+                        IsEnabled="{Binding CapturarHabilitado}">
                     <StackPanel Orientation="Horizontal">
-                        <md:PackIcon Kind="{Binding IconeConectar}"
-                                     Width="20" Height="20" Margin="0,0,6,0"/>
-                        <TextBlock Text="{Binding TextoBotaoConectar}" FontWeight="Bold"/>
+                        <md:PackIcon Kind="Radar" Width="20" Height="20" Margin="0,0,8,0"/>
+                        <TextBlock Text="CAPTURAR" FontWeight="Bold"/>
                     </StackPanel>
                 </Button>
             </Grid>
         </Border>
 
-        <!-- Resultado da Leitura — Semáforo -->
+        <!-- ═══ Resultado da Leitura ═══ -->
         <Border Grid.Row="2" Grid.Column="0"
                 Background="White" CornerRadius="8"
                 Padding="24" Margin="0,0,12,12"
@@ -72,7 +81,6 @@
 
                 <StackPanel Grid.Column="0">
 
-                    <!-- Umidade grande com cor do semáforo -->
                     <TextBlock Text="{Binding UmidadeDisplay}"
                                FontSize="64" FontWeight="Bold"
                                Foreground="{Binding CorSemaforo}"
@@ -84,7 +92,6 @@
                                HorizontalAlignment="Center"
                                Margin="0,0,0,16"/>
 
-                    <!-- Produto e equipamento detectados -->
                     <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*"/>
@@ -99,14 +106,14 @@
                         </StackPanel>
 
                         <StackPanel Grid.Column="1">
-                            <TextBlock Text="EQUIPAMENTO" FontSize="10"
+                            <TextBlock Text="SECADOR" FontSize="10"
                                        Opacity="0.5" FontWeight="Bold"/>
-                            <TextBlock Text="{Binding EquipamentoDetectado}"
-                                       FontSize="14"/>
+                            <TextBlock Text="{Binding SecadorSelecionado.Nome}"
+                                       FontSize="16" FontWeight="SemiBold"
+                                       Foreground="{DynamicResource MaterialDesign.Brush.Primary}"/>
                         </StackPanel>
                     </Grid>
 
-                    <!-- Hora do equipamento vs sistema -->
                     <Grid Margin="0,12,0,0">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*"/>
@@ -115,26 +122,24 @@
                         <StackPanel Grid.Column="0">
                             <TextBlock Text="HORA SISTEMA" FontSize="10"
                                        Opacity="0.5" FontWeight="Bold"/>
-                            <TextBlock Text="{Binding HoraSistema}"
-                                       FontSize="13"/>
+                            <TextBlock Text="{Binding HoraSistema}" FontSize="13"/>
                         </StackPanel>
                         <StackPanel Grid.Column="1">
                             <TextBlock Text="HORA EQUIPAMENTO" FontSize="10"
                                        Opacity="0.5" FontWeight="Bold"/>
-                            <TextBlock Text="{Binding HoraEquipamento}"
-                                       FontSize="13"/>
+                            <TextBlock Text="{Binding HoraEquipamento}" FontSize="13"/>
                         </StackPanel>
                     </Grid>
                 </StackPanel>
 
-                <!-- Indicador visual semáforo -->
+                <!-- Barra semáforo -->
                 <Border Grid.Column="1" Width="24" CornerRadius="12"
                         Background="{Binding CorSemaforo}"
                         Margin="16,0,0,0" Opacity="0.85"/>
             </Grid>
         </Border>
 
-        <!-- Confirmação destino -->
+        <!-- ═══ Destino ═══ -->
         <Border Grid.Row="3" Grid.Column="0"
                 Background="White" CornerRadius="8"
                 Padding="24" Margin="0,0,12,0"
@@ -165,7 +170,7 @@
             </StackPanel>
         </Border>
 
-        <!-- ═══ PAINEL DIREITO — Timer + Histórico ═══ -->
+        <!-- ═══ Painel Direito — Timer + Últimas ═══ -->
         <StackPanel Grid.Row="1" Grid.RowSpan="3" Grid.Column="1">
 
             <!-- Timer -->
@@ -181,9 +186,10 @@
                                HorizontalAlignment="Center"
                                Foreground="{Binding CorTimer}"/>
                     <TextBlock Text="{Binding StatusTimer}"
-                               FontSize="12" HorizontalAlignment="Center"
+                               FontSize="13" FontWeight="SemiBold"
+                               HorizontalAlignment="Center"
                                Foreground="{Binding CorTimer}"
-                               Opacity="0.8"/>
+                               Margin="0,4,0,0"/>
                     <ProgressBar Value="{Binding ProgressoTimer}"
                                  Maximum="100" Height="6"
                                  Margin="0,8,0,0"
@@ -214,6 +220,13 @@
                                                        FontWeight="SemiBold"/>
                                             <TextBlock Text="{Binding SiloDestino.Nome}"
                                                        FontSize="11" Opacity="0.6"/>
+                                            <Border Background="#E8F5E9" CornerRadius="4"
+                                                    Padding="4,2" Margin="0,2,0,2"
+                                                    HorizontalAlignment="Left">
+                                                <TextBlock Text="{Binding Secador.Nome}"
+                                                           FontSize="11" FontWeight="SemiBold"
+                                                           Foreground="#2E7D32"/>
+                                            </Border>
                                             <TextBlock Text="{Binding DataHoraSistema, StringFormat={}{0:HH:mm}}"
                                                        FontSize="11" Opacity="0.5"/>
                                         </StackPanel>
@@ -229,7 +242,6 @@
                     </ItemsControl>
                 </StackPanel>
             </Border>
-
         </StackPanel>
     </Grid>
 </UserControl>
