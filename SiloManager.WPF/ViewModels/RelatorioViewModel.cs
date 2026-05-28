@@ -202,6 +202,20 @@ namespace SiloManager.WPF.ViewModels
 
         partial void OnStatusFiltroChanged(string value) => AtualizarTabela();
 
+        private RelatorioFiltroDto MontarFiltro() => new()
+        {
+            DataInicio = DataInicio,
+            DataFim = DataFim,
+            ProdutoId = ProdutoFiltro?.Id,
+            SiloId = SiloFiltro?.Id,
+            UsuarioId = UsuarioFiltro?.Id,
+            ProdutoNome = ProdutoFiltro?.Nome,
+            SiloNome = SiloFiltro?.Nome,
+            SecadorNome = SecadorFiltro?.Nome,
+            UsuarioNome = UsuarioFiltro?.Nome,
+            StatusFiltro = StatusFiltro != "Todos" ? StatusFiltro : null
+        };
+
         [RelayCommand]
         private void ExportarExcel()
         {
@@ -220,7 +234,7 @@ namespace SiloManager.WPF.ViewModels
             if (dlg.ShowDialog() != true) return;
             try
             {
-                ExportacaoService.ExportarExcel(Linhas.ToList(), dlg.FileName);
+                ExportacaoService.ExportarExcel(Linhas.ToList(), dlg.FileName, MontarFiltro(), ResumoRodizio);
                 MessageBox.Show("✅ Excel exportado!", "Sucesso",
                     MessageBoxButton.OK, MessageBoxImage.Information);
             }
@@ -249,15 +263,7 @@ namespace SiloManager.WPF.ViewModels
             if (dlg.ShowDialog() != true) return;
             try
             {
-                var filtro = new RelatorioFiltroDto
-                {
-                    DataInicio = DataInicio,
-                    DataFim = DataFim,
-                    ProdutoId = ProdutoFiltro?.Id,
-                    SiloId = SiloFiltro?.Id,
-                    UsuarioId = UsuarioFiltro?.Id
-                };
-                ExportacaoService.ExportarPdf(Linhas.ToList(), dlg.FileName, filtro);
+                ExportacaoService.ExportarPdf(Linhas.ToList(), dlg.FileName, MontarFiltro(), ResumoRodizio);
                 MessageBox.Show("✅ PDF exportado!", "Sucesso",
                     MessageBoxButton.OK, MessageBoxImage.Information);
             }

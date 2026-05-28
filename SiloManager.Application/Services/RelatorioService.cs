@@ -10,6 +10,11 @@ namespace SiloManager.Application.Services
         public int? ProdutoId { get; set; }
         public int? SiloId { get; set; }
         public int? UsuarioId { get; set; }
+        public string? ProdutoNome { get; set; }
+        public string? SiloNome { get; set; }
+        public string? SecadorNome { get; set; }
+        public string? UsuarioNome { get; set; }
+        public string? StatusFiltro { get; set; }
     }
 
     public class RelatorioLinhaDto
