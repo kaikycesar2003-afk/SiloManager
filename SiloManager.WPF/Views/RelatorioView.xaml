@@ -247,9 +247,11 @@
                       BorderThickness="0" FontSize="12">
                 <DataGrid.RowStyle>
                     <Style TargetType="DataGridRow">
+                        <Setter Property="FontWeight" Value="Normal"/>
+                        <Setter Property="FontSize"   Value="12"/>
                         <Style.Triggers>
                             <DataTrigger Binding="{Binding IsRetrabalho}" Value="True">
-                                <Setter Property="FontWeight" Value="SemiBold"/>
+                                <Setter Property="Background" Value="#FAF3FF"/>
                             </DataTrigger>
                         </Style.Triggers>
                     </Style>
@@ -290,6 +292,53 @@
                     <DataGridTextColumn Header="Silo Destino" Binding="{Binding SiloDestino}" Width="*"/>
                     <DataGridTextColumn Header="Intervalo"    Binding="{Binding Intervalo}"   Width="75"/>
                     <DataGridTextColumn Header="Obs."         Binding="{Binding Observacao}"  Width="120"/>
+                    <DataGridTemplateColumn Header="Ações" Width="160">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <StackPanel Orientation="Horizontal"
+                                            Visibility="{Binding DataContext.IsAdmin,
+                                                RelativeSource={RelativeSource AncestorType=DataGrid},
+                                                Converter={StaticResource BooleanToVisibilityConverter}}">
+                                    <!-- Editar — badge verde -->
+                                    <Border Background="#E8F5E9" CornerRadius="12"
+                                            Padding="6,3" Margin="2,0"
+                                            Cursor="Hand">
+                                        <Border.InputBindings>
+                                            <MouseBinding MouseAction="LeftClick"
+                                                          Command="{Binding DataContext.EditarMedicaoCommand,
+                                                              RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                                          CommandParameter="{Binding}"/>
+                                        </Border.InputBindings>
+                                        <StackPanel Orientation="Horizontal">
+                                            <md:PackIcon Kind="Pencil" Width="11" Height="11"
+                                                         Foreground="#2E7D32" VerticalAlignment="Center"/>
+                                            <TextBlock Text="editar" FontSize="10"
+                                                       Foreground="#2E7D32" Margin="3,0,0,0"
+                                                       VerticalAlignment="Center"/>
+                                        </StackPanel>
+                                    </Border>
+                                    <!-- Excluir — badge vermelho -->
+                                    <Border Background="#FFEBEE" CornerRadius="12"
+                                            Padding="6,3" Margin="2,0"
+                                            Cursor="Hand">
+                                        <Border.InputBindings>
+                                            <MouseBinding MouseAction="LeftClick"
+                                                          Command="{Binding DataContext.ExcluirMedicaoCommand,
+                                                              RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                                          CommandParameter="{Binding}"/>
+                                        </Border.InputBindings>
+                                        <StackPanel Orientation="Horizontal">
+                                            <md:PackIcon Kind="Delete" Width="11" Height="11"
+                                                         Foreground="#C62828" VerticalAlignment="Center"/>
+                                            <TextBlock Text="excluir" FontSize="10"
+                                                       Foreground="#C62828" Margin="3,0,0,0"
+                                                       VerticalAlignment="Center"/>
+                                        </StackPanel>
+                                    </Border>
+                                </StackPanel>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
                 </DataGrid.Columns>
             </DataGrid>
         </Border>

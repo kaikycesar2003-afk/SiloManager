@@ -45,24 +45,41 @@
                                FontSize="12" Opacity="0.6"/>
                 </StackPanel>
 
-                <!-- Secador -->
+                <!-- Secador — bloqueado durante captura e enquanto leitura aguarda confirmação -->
                 <ComboBox Grid.Column="1"
                           ItemsSource="{Binding Secadores}"
                           SelectedItem="{Binding SecadorSelecionado}"
                           DisplayMemberPath="Nome"
+                          IsEnabled="{Binding SecadorHabilitado}"
                           md:HintAssist.Hint="Selecione o Secador *"
                           Style="{StaticResource MaterialDesignOutlinedComboBox}"
                           Margin="0,0,12,0"/>
 
-                <!-- Botão CAPTURAR -->
+                <!-- ═══ Botão CAPTURAR / DESCONECTAR ═══
+                     Cor controlada por DataTrigger pois MaterialDesign sobrescreve
+                     o Background definido diretamente na propriedade.
+                     AguardandoCaptura=True  → vermelho escuro (#B71C1C) = DESCONECTAR
+                     AguardandoCaptura=False → cor padrão do tema               -->
                 <Button Grid.Column="2"
                         Command="{Binding CapturarCommand}"
-                        Style="{StaticResource MaterialDesignRaisedButton}"
-                        Height="56" MinWidth="140"
-                        IsEnabled="{Binding CapturarHabilitado}">
+                        Height="56" MinWidth="140">
+                    <Button.Style>
+                        <Style BasedOn="{StaticResource MaterialDesignRaisedButton}"
+                               TargetType="Button">
+                            <Style.Triggers>
+                                <!-- Modo DESCONECTAR: fundo vermelho escuro -->
+                                <DataTrigger Binding="{Binding AguardandoCaptura}" Value="True">
+                                    <Setter Property="Background"   Value="#B71C1C"/>
+                                    <Setter Property="BorderBrush"  Value="#B71C1C"/>
+                                    <Setter Property="Foreground"   Value="White"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Button.Style>
                     <StackPanel Orientation="Horizontal">
-                        <md:PackIcon Kind="Radar" Width="20" Height="20" Margin="0,0,8,0"/>
-                        <TextBlock Text="CAPTURAR" FontWeight="Bold"/>
+                        <md:PackIcon Kind="{Binding IconeBotaoCapturar}"
+                                     Width="20" Height="20" Margin="0,0,8,0"/>
+                        <TextBlock Text="{Binding TextoBotaoCapturar}" FontWeight="Bold"/>
                     </StackPanel>
                 </Button>
             </Grid>

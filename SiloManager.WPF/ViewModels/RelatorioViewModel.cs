@@ -8,6 +8,7 @@ using SiloManager.Domain.Interfaces.Repositories;
 using SiloManager.WPF.Services;
 using System.Collections.ObjectModel;
 using System.Windows;
+using WpfApp = System.Windows.Application;
 
 namespace SiloManager.WPF.ViewModels
 {
@@ -59,6 +60,9 @@ namespace SiloManager.WPF.ViewModels
 
         private List<RelatorioLinhaDto> _linhasCompletas = new();
 
+        // ═══ Admin — Edição e Exclusão ═══
+        [ObservableProperty] private bool _isAdmin;
+
         public RelatorioViewModel(
             IMedicaoRepository medicaoRepo,
             IProdutoRepository produtoRepo,
@@ -71,6 +75,9 @@ namespace SiloManager.WPF.ViewModels
             _siloRepo = siloRepo;
             _usuarioRepo = usuarioRepo;
             _secadorRepo = secadorRepo;
+
+            IsAdmin = SessaoUsuario.Atual?.Nivel == SiloManager.Domain.Enums.NivelAcesso.Administrador;
+
             _ = CarregarFiltrosAsync();
         }
 
@@ -201,6 +208,63 @@ namespace SiloManager.WPF.ViewModels
         }
 
         partial void OnStatusFiltroChanged(string value) => AtualizarTabela();
+
+        [RelayCommand]
+        private async Task EditarMedicao(RelatorioLinhaDto dto)
+        {
+            var empresaId = SessaoUsuario.Atual!.EmpresaId;
+            var medicao = await _medicaoRepo.GetByIdAsync(dto.Id);
+            if (medicao == null) return;
+
+            var produtos = await _produtoRepo.GetAtivosAsync();
+            var silos = await _siloRepo.GetByEmpresaAsync(empresaId);
+            var secadores = await _secadorRepo.GetByEmpresaAsync(empresaId);
+
+            var produtoAtual = produtos.FirstOrDefault(p => p.Nome == dto.Produto);
+            var siloAtual = silos.FirstOrDefault(s => s.Nome == dto.SiloDestino);
+            var secadorAtual = secadores.FirstOrDefault(s => s.Nome == dto.Secador);
+
+            var janela = new Views.EdicaoMedicaoWindow(
+                dto.Umidade, dto.Observacao,
+                produtos, silos, secadores,
+                produtoAtual, siloAtual, secadorAtual);
+
+            janela.Owner = WpfApp.Current.MainWindow;
+            janela.ShowDialog();
+
+            if (!janela.Confirmado) return;
+
+            medicao.Umidade = janela.UmidadeEditada ?? medicao.Umidade;
+            medicao.ProdutoId = janela.ProdutoEditado?.Id ?? medicao.ProdutoId;
+            medicao.SiloDestinoId = janela.SiloEditado?.Id ?? medicao.SiloDestinoId;
+            medicao.SecadorId = janela.SecadorEditado?.Id;
+            medicao.IsRetrabalho = janela.SiloEditado?.IsRetrabalho ?? medicao.IsRetrabalho;
+            medicao.Observacao = janela.ObservacaoEditada;
+
+            await _medicaoRepo.UpdateAsync(medicao);
+            await _medicaoRepo.SaveChangesAsync();
+
+            await Buscar();
+        }
+
+        [RelayCommand]
+        private async Task ExcluirMedicao(RelatorioLinhaDto dto)
+        {
+            var r = MessageBox.Show(
+                $"Excluir medição de {dto.DataHora:dd/MM HH:mm} — {dto.Produto} {dto.Umidade:F1}%?\n\nEsta ação não pode ser desfeita.",
+                "Confirmar exclusão",
+                MessageBoxButton.YesNo, MessageBoxImage.Warning);
+
+            if (r != MessageBoxResult.Yes) return;
+
+            var medicao = await _medicaoRepo.GetByIdAsync(dto.Id);
+            if (medicao == null) return;
+
+            await _medicaoRepo.DeleteAsync(medicao);
+            await _medicaoRepo.SaveChangesAsync();
+
+            await Buscar();
+        }
 
         private RelatorioFiltroDto MontarFiltro() => new()
         {

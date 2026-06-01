@@ -1,5 +1,6 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using MaterialDesignThemes.Wpf;
 using SiloManager.Application.DTOs;
 using SiloManager.Application.Enums;
 using SiloManager.Application.Services;
@@ -30,6 +31,11 @@ namespace SiloManager.WPF.ViewModels
         private LeituraSerialDto? _leituraAtual;
         private bool _escutandoSerial;
 
+        // ─── Cores fixas ────────────────────────────────────────────────────
+        private static readonly Brush CorVerde = new SolidColorBrush(Color.FromRgb(46, 125, 50));
+        private static readonly Brush CorLaranja = new SolidColorBrush(Color.FromRgb(245, 124, 0));
+        private static readonly Brush CorVermelha = new SolidColorBrush(Color.FromRgb(211, 47, 47));
+
         // ═══ Equipamento (fixo) ═══
         [ObservableProperty] private Equipamento? _equipamentoFixo;
 
@@ -38,8 +44,21 @@ namespace SiloManager.WPF.ViewModels
         [ObservableProperty] private bool _temMaisDeUmSecador;
 
         // ═══ Estado do botão CAPTURAR ═══
+        // CapturarHabilitado  → timer/secador permitem captura (lógica de negócio)
+        // AguardandoCaptura   → usuário clicou e está aguardando leitura da serial
+        // PodeCapturar        → CanExecute real do comando:
+        //                        true quando habilitado OU quando aguardando (p/ permitir DESCONECTAR)
         [ObservableProperty] private bool _capturarHabilitado;
+        [ObservableProperty] private bool _aguardandoCaptura;
         [ObservableProperty] private string _statusCapturar = "Selecione um secador";
+
+        // ═══ Texto e ícone do botão (CAPTURAR ↔ DESCONECTAR) ═══
+        [ObservableProperty] private string _textoBotaoCapturar = "CAPTURAR";
+        [ObservableProperty] private PackIconKind _iconeBotaoCapturar = PackIconKind.Radar;
+
+        // ═══ Controle do ComboBox de Secador ═══
+        // False enquanto captura em andamento ou leitura aguardando confirmação
+        [ObservableProperty] private bool _secadorHabilitado = true;
 
         // ═══ Leitura ═══
         [ObservableProperty] private string _umidadeDisplay = "-- %";
@@ -66,6 +85,9 @@ namespace SiloManager.WPF.ViewModels
         public ObservableCollection<Medicao> UltimasMedicoes { get; } = new();
         public ObservableCollection<Secador> Secadores { get; } = new();
 
+        // CanExecute real: habilitado pelo timer/secador OU aguardando (p/ clicar DESCONECTAR)
+        private bool PodeCapturar => CapturarHabilitado || AguardandoCaptura;
+
         public MedicaoViewModel(
             IEquipamentoRepository equipRepo,
             ISiloRepository siloRepo,
@@ -91,6 +113,10 @@ namespace SiloManager.WPF.ViewModels
             _ = InicializarAsync();
         }
 
+        // ═══════════════════════════════════════════════════════════════════
+        //  INICIALIZAÇÃO
+        // ═══════════════════════════════════════════════════════════════════
+
         private async Task InicializarAsync()
         {
             var empresaId = SessaoUsuario.Atual!.EmpresaId;
@@ -107,10 +133,7 @@ namespace SiloManager.WPF.ViewModels
             // Conecta automaticamente se tiver equipamento
             if (EquipamentoFixo != null)
             {
-                try
-                {
-                    _serialService.Conectar(EquipamentoFixo.PortaCOM, EquipamentoFixo.BaudRate);
-                }
+                try { _serialService.Conectar(EquipamentoFixo.PortaCOM, EquipamentoFixo.BaudRate); }
                 catch { /* porta não disponível no momento */ }
             }
 
@@ -129,12 +152,18 @@ namespace SiloManager.WPF.ViewModels
             IniciarTimer();
         }
 
-        // Ao trocar de secador → reavalia timer imediatamente
+        // ═══════════════════════════════════════════════════════════════════
+        //  TIMER DO SECADOR
+        // ═══════════════════════════════════════════════════════════════════
+
         partial void OnSecadorSelecionadoChanged(Secador? value)
             => _ = AvaliarTimerSecadorAsync();
 
         private async Task AvaliarTimerSecadorAsync()
         {
+            // Enquanto aguardando leitura da serial, não interfere no estado do botão
+            if (AguardandoCaptura) return;
+
             if (SecadorSelecionado == null)
             {
                 CapturarHabilitado = false;
@@ -156,7 +185,7 @@ namespace SiloManager.WPF.ViewModels
                 TimerDisplay = "LIVRE";
                 StatusTimer = $"✅ {SecadorSelecionado.Nome} liberado";
                 ProgressoTimer = 100;
-                CorTimer = new SolidColorBrush(Color.FromRgb(46, 125, 50));
+                CorTimer = CorVerde;
             }
             else
             {
@@ -166,9 +195,7 @@ namespace SiloManager.WPF.ViewModels
                 TimerDisplay = $"{(int)ts.TotalMinutes:00}:{ts.Seconds:00}";
                 StatusTimer = $"⏳ {SecadorSelecionado.Nome} bloqueado";
                 ProgressoTimer = 100 - (ts.TotalSeconds / _intervaloSegundos * 100);
-                CorTimer = ts.TotalMinutes < 2
-                    ? new SolidColorBrush(Color.FromRgb(245, 124, 0))
-                    : new SolidColorBrush(Color.FromRgb(211, 47, 47));
+                CorTimer = ts.TotalMinutes < 2 ? CorLaranja : CorVermelha;
             }
         }
 
@@ -183,27 +210,82 @@ namespace SiloManager.WPF.ViewModels
             _timer.Start();
         }
 
-        // ═══ Capturar — inicia escuta da serial ═══
-        [RelayCommand(CanExecute = nameof(CapturarHabilitado))]
-        private void Capturar()
-        {
-            _escutandoSerial = true;
-            StatusDisplay = $"🎯 Aguardando leitura do {SecadorSelecionado?.Nome}...";
-            LimparLeitura(manterSecador: true);
-        }
-
+        // Notifica o comando sempre que as propriedades que compõem PodeCapturar mudam
         partial void OnCapturarHabilitadoChanged(bool value)
             => CapturarCommand.NotifyCanExecuteChanged();
 
-        // ═══ Recebe leitura da serial ═══
+        partial void OnAguardandoCapturaChanged(bool value)
+            => CapturarCommand.NotifyCanExecuteChanged();
+
+        // ═══════════════════════════════════════════════════════════════════
+        //  COMANDO: CAPTURAR / DESCONECTAR
+        // ═══════════════════════════════════════════════════════════════════
+
+        [RelayCommand(CanExecute = nameof(PodeCapturar))]
+        private void Capturar()
+        {
+            // ── Modo DESCONECTAR: cancela a escuta ──────────────────────────
+            if (AguardandoCaptura)
+            {
+                AguardandoCaptura = false;
+                _escutandoSerial = false;
+                StatusDisplay = "Aguardando leitura...";
+                TextoBotaoCapturar = "CAPTURAR";
+                IconeBotaoCapturar = PackIconKind.Radar;
+                SecadorHabilitado = true;
+                return;
+            }
+
+            // ── Verifica conexão serial ─────────────────────────────────────
+            if (!_serialService.Conectado)
+            {
+                if (EquipamentoFixo != null)
+                {
+                    try
+                    {
+                        _serialService.Conectar(EquipamentoFixo.PortaCOM, EquipamentoFixo.BaudRate);
+                    }
+                    catch
+                    {
+                        StatusDisplay = $"❌ Equipamento não encontrado em {EquipamentoFixo?.PortaCOM}.";
+                        return;
+                    }
+                }
+                else
+                {
+                    StatusDisplay = "❌ Nenhum equipamento cadastrado.";
+                    return;
+                }
+            }
+
+            // ── Inicia captura → botão vira DESCONECTAR (vermelho via XAML trigger) ──
+            //_escutandoSerial = true;
+            AguardandoCaptura = true;       // dispara OnAguardandoCapturaChanged → NotifyCanExecuteChanged
+            TextoBotaoCapturar = "DESCONECTAR";
+            IconeBotaoCapturar = PackIconKind.Stop;
+            SecadorHabilitado = false;      // bloqueia troca de secador
+
+            StatusDisplay = $"🎯 Aguardando leitura do {SecadorSelecionado?.Nome}...";
+            LimparLeitura(manterSecador: true);
+            _escutandoSerial = true; //Troca de posição Correção
+        }
+
+        // ═══════════════════════════════════════════════════════════════════
+        //  RECEBE LEITURA DA SERIAL
+        // ═══════════════════════════════════════════════════════════════════
+
         private async void OnLeituraRecebida(LeituraSerialDto dto)
         {
-            // Ignora se não está no modo de captura
             if (!_escutandoSerial) return;
 
             await WpfApp.Current.Dispatcher.InvokeAsync(async () =>
             {
                 _escutandoSerial = false;
+                AguardandoCaptura = false;   // dispara OnAguardandoCapturaChanged
+
+                // Restaura visual do botão; secador continua bloqueado até confirmação
+                TextoBotaoCapturar = "CAPTURAR";
+                IconeBotaoCapturar = PackIconKind.Radar;
 
                 dto = await _medicaoService.EnriquecerLeituraAsync(dto);
 
@@ -231,9 +313,9 @@ namespace SiloManager.WPF.ViewModels
         {
             (CorSemaforo, StatusDisplay) = status switch
             {
-                StatusUmidade.Ideal => (new SolidColorBrush(Color.FromRgb(46, 125, 50)), "✅ IDEAL"),
-                StatusUmidade.Critico => (new SolidColorBrush(Color.FromRgb(211, 47, 47)), "🔴 CRÍTICO — Muito seco"),
-                StatusUmidade.Atencao => (new SolidColorBrush(Color.FromRgb(245, 124, 0)), "⚠️ ATENÇÃO — Úmido"),
+                StatusUmidade.Ideal => (CorVerde, "✅ IDEAL"),
+                StatusUmidade.Critico => (CorVermelha, "🔴 CRÍTICO — Muito seco"),
+                StatusUmidade.Atencao => (CorLaranja, "⚠️ ATENÇÃO — Úmido"),
                 _ => (Brushes.Gray, "Aguardando leitura...")
             };
         }
@@ -250,13 +332,15 @@ namespace SiloManager.WPF.ViewModels
                 foreach (var s in silos) SilosDisponiveis.Add(s);
             }
 
-            // Atenção (úmido) → pré-seleciona Retrabalho
-            // Crítico (seco) e Ideal → pré-seleciona primeiro Silo normal
             if (_leituraAtual?.Status == StatusUmidade.Atencao)
                 SiloDestinoSelecionado = SilosDisponiveis.FirstOrDefault(s => s.IsRetrabalho);
             else
                 SiloDestinoSelecionado = SilosDisponiveis.FirstOrDefault(s => !s.IsRetrabalho);
         }
+
+        // ═══════════════════════════════════════════════════════════════════
+        //  COMANDO: CONFIRMAR MEDIÇÃO
+        // ═══════════════════════════════════════════════════════════════════
 
         [RelayCommand]
         private async Task Confirmar()
@@ -307,11 +391,17 @@ namespace SiloManager.WPF.ViewModels
             MessageBox.Show("✅ Medição registrada com sucesso!", "Sucesso",
                 MessageBoxButton.OK, MessageBoxImage.Information);
 
-            // Reseta tudo e trava CAPTURAR
+            // Reseta tudo e libera seleção de secador
             LimparLeitura(manterSecador: true);
+            SecadorHabilitado = true;
+
             await CarregarUltimasMedicoesAsync();
             await AvaliarTimerSecadorAsync();
         }
+
+        // ═══════════════════════════════════════════════════════════════════
+        //  AUXILIARES
+        // ═══════════════════════════════════════════════════════════════════
 
         private async Task CarregarUltimasMedicoesAsync()
         {
@@ -340,7 +430,10 @@ namespace SiloManager.WPF.ViewModels
             SilosDisponiveis.Clear();
 
             if (!manterSecador)
+            {
                 SecadorSelecionado = Secadores.Count == 1 ? Secadores[0] : null;
+                SecadorHabilitado = true;
+            }
         }
 
         private void OnErroSerial(string erro) =>

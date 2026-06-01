@@ -19,6 +19,7 @@ namespace SiloManager.Application.Services
 
     public class RelatorioLinhaDto
     {
+        public int Id { get; set; }
         public DateTime DataHora { get; set; }
         public string Operador { get; set; } = string.Empty;
         public string Produto { get; set; } = string.Empty;
@@ -59,6 +60,7 @@ namespace SiloManager.Application.Services
 
                     resultado.Add(new RelatorioLinhaDto
                     {
+                        Id = m.Id,
                         DataHora = m.DataHoraSistema,
                         Operador = m.Usuario?.Nome ?? "—",
                         Produto = m.Produto?.Nome ?? "—",
