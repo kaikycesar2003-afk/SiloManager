@@ -2,7 +2,6 @@
 
 namespace SiloManager.Application.Services
 {
-    // DTOs para o relatório
     public class RelatorioFiltroDto
     {
         public DateTime DataInicio { get; set; } = DateTime.Today;
@@ -10,6 +9,7 @@ namespace SiloManager.Application.Services
         public int? ProdutoId { get; set; }
         public int? SiloId { get; set; }
         public int? UsuarioId { get; set; }
+        public int? SecadorId { get; set; }          // ← adicionado para filtro direto por ID
         public string? ProdutoNome { get; set; }
         public string? SiloNome { get; set; }
         public string? SecadorNome { get; set; }
@@ -27,6 +27,7 @@ namespace SiloManager.Application.Services
         public string Status { get; set; } = string.Empty;
         public string Equipamento { get; set; } = string.Empty;
         public string Secador { get; set; } = string.Empty;
+        public int? SecadorId { get; set; }          // ← adicionado para groupby confiável
         public string SiloDestino { get; set; } = string.Empty;
         public string Intervalo { get; set; } = string.Empty;
         public string Observacao { get; set; } = string.Empty;
@@ -37,73 +38,77 @@ namespace SiloManager.Application.Services
     {
         public static List<RelatorioLinhaDto> Converter(IEnumerable<Medicao> medicoes)
         {
-            // Ordena do mais antigo para o mais recente (primeiros do dia no topo)
             var lista = medicoes.OrderBy(m => m.DataHoraSistema).ToList();
-
             var resultado = new List<RelatorioLinhaDto>();
 
-            // Agrupa por dia para calcular intervalo correto
-            var porDia = lista.GroupBy(m => m.DataHoraSistema.Date);
+            // Rastreia a última DataHora por (SecadorId, Date)
+            // Intervalo é sempre calculado contra a medição anterior DO MESMO SECADOR no mesmo dia
+            var ultimaPorSecadorDia = new Dictionary<(int?, DateTime), DateTime>();
 
-            foreach (var dia in porDia)
+            foreach (var m in lista)
             {
-                var medicoesDia = dia.OrderBy(m => m.DataHoraSistema).ToList();
+                var dia = m.DataHoraSistema.Date;
+                var key = (m.SecadorId, dia);
 
-                for (int i = 0; i < medicoesDia.Count; i++)
+                string intervalo;
+                if (ultimaPorSecadorDia.TryGetValue(key, out var ultimaDataDoSecador))
                 {
-                    var m = medicoesDia[i];
-
-                    // Primeira medição do dia → intervalo = 0
-                    string intervalo = i == 0
-                        ? "—"
-                        : FormatarIntervalo((int)(m.DataHoraSistema - medicoesDia[i - 1].DataHoraSistema).TotalSeconds);
-
-                    resultado.Add(new RelatorioLinhaDto
-                    {
-                        Id = m.Id,
-                        DataHora = m.DataHoraSistema,
-                        Operador = m.Usuario?.Nome ?? "—",
-                        Produto = m.Produto?.Nome ?? "—",
-                        Umidade = m.Umidade,
-                        Status = CalcularStatus(m),
-                        Equipamento = m.Equipamento?.Nome ?? "—",
-                        Secador = m.Secador?.Nome ?? "—",
-                        SiloDestino = m.SiloDestino?.Nome ?? "—",
-                        Intervalo = intervalo,
-                        Observacao = m.Observacao ?? string.Empty,
-                        IsRetrabalho = m.IsRetrabalho
-                    });
+                    var segundos = (int)(m.DataHoraSistema - ultimaDataDoSecador).TotalSeconds;
+                    intervalo = FormatarIntervalo(segundos);
                 }
+                else
+                {
+                    // Primeira medição deste secador neste dia → sem intervalo
+                    intervalo = "—";
+                }
+
+                ultimaPorSecadorDia[key] = m.DataHoraSistema;
+
+                resultado.Add(new RelatorioLinhaDto
+                {
+                    Id = m.Id,
+                    DataHora = m.DataHoraSistema,
+                    Operador = m.Usuario?.Nome ?? "—",
+                    Produto = m.Produto?.Nome ?? "—",
+                    Umidade = m.Umidade,
+                    Status = CalcularStatus(m),
+                    Equipamento = m.Equipamento?.Nome ?? "—",
+                    Secador = m.Secador?.Nome ?? "—",
+                    SecadorId = m.SecadorId,
+                    SiloDestino = m.SiloDestino?.Nome ?? "—",
+                    Intervalo = intervalo,
+                    Observacao = m.Observacao ?? string.Empty,
+                    IsRetrabalho = m.IsRetrabalho
+                });
             }
 
             return resultado;
         }
 
-        // Calcula a média de intervalo do dia (ignora a primeira medição)
+        // Média de intervalo calculada por secador/dia
         public static string CalcularMediaIntervalo(List<RelatorioLinhaDto> linhas)
         {
-            var comIntervalo = linhas
-                .Where(l => l.Intervalo != "—" && l.Intervalo != string.Empty)
+            // Agrupa por (SecadorId, Data) — só grupos com >= 2 medições têm intervalo
+            var grupos = linhas
+                .GroupBy(l => (l.SecadorId, l.DataHora.Date))
+                .Where(g => g.Count() >= 2)
                 .ToList();
 
-            if (comIntervalo.Count == 0) return "—";
+            if (grupos.Count == 0) return "—";
 
-            // Converte intervalos de volta para segundos para calcular média
-            var porDia = linhas.GroupBy(l => l.DataHora.Date);
             var medias = new List<string>();
 
-            foreach (var dia in porDia)
+            foreach (var grupo in grupos)
             {
-                var medicoesDia = dia.OrderBy(l => l.DataHora).ToList();
-                if (medicoesDia.Count < 2) continue;
+                var ordenadas = grupo.OrderBy(l => l.DataHora).ToList();
+                var totalSegundos = (ordenadas.Last().DataHora - ordenadas.First().DataHora).TotalSeconds;
+                var mediaSegundos = (int)(totalSegundos / (ordenadas.Count - 1));
+                var nomeSecador = ordenadas.First().Secador;
 
-                var totalSegundos = (medicoesDia.Last().DataHora - medicoesDia.First().DataHora).TotalSeconds;
-                var mediaSegundos = totalSegundos / (medicoesDia.Count - 1);
-
-                medias.Add($"{dia.Key:dd/MM}: {FormatarIntervalo((int)mediaSegundos)}");
+                medias.Add($"{grupo.Key.Date:dd/MM} {nomeSecador}: {FormatarIntervalo(mediaSegundos)}");
             }
 
-            return medias.Count > 0 ? string.Join(" | ", medias) : "—";
+            return string.Join("  |  ", medias);
         }
 
         private static string CalcularStatus(Medicao m)
@@ -114,10 +119,9 @@ namespace SiloManager.Application.Services
             return "Atenção";
         }
 
-        private static string FormatarIntervalo(int? segundos)
+        private static string FormatarIntervalo(int segundos)
         {
-            if (segundos == null) return "—";
-            var ts = TimeSpan.FromSeconds(segundos.Value);
+            var ts = TimeSpan.FromSeconds(segundos);
             if (ts.TotalHours >= 1)
                 return $"{(int)ts.TotalHours}h {ts.Minutes}min";
             if (ts.TotalMinutes >= 1)

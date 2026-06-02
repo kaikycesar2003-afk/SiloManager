@@ -7,38 +7,124 @@
     <Grid Margin="8">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
+            <!-- Título -->
             <RowDefinition Height="Auto"/>
+            <!-- Seletor de Secador (pivot) -->
             <RowDefinition Height="Auto"/>
+            <!-- Filtros secundários -->
             <RowDefinition Height="Auto"/>
+            <!-- Totalizadores + Exportação -->
+            <RowDefinition Height="Auto"/>
+            <!-- Resumo Rodízio -->
             <RowDefinition Height="*"/>
+            <!-- Tabela -->
         </Grid.RowDefinitions>
 
-        <!-- Título -->
+        <!-- ═══ TÍTULO ═══ -->
         <TextBlock Grid.Row="0" Text="📋 Relatórios"
                    Style="{StaticResource MaterialDesignHeadline5TextBlock}"
                    Margin="0,0,0,12"/>
 
-        <!-- Filtros -->
+        <!-- ═══ SELETOR DE SECADOR — pivot principal ═══ -->
         <Border Grid.Row="1" Background="White" CornerRadius="8"
                 Padding="16,12" Margin="0,0,0,8"
                 Effect="{StaticResource MaterialDesignShadowDepth1}">
             <Grid>
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="130"/>
-                    <ColumnDefinition Width="130"/>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto"/>
+                    <!-- Label "Secador" -->
+                    <ColumnDefinition Width="260"/>
+                    <!-- ComboBox secador -->
+                    <ColumnDefinition Width="*"/>
+                    <!-- Chip secador ativo -->
+                    <ColumnDefinition Width="Auto"/>
+                    <!-- Botão limpar -->
                 </Grid.ColumnDefinitions>
 
-                <!-- Datas -->
-                <DatePicker Grid.Column="0" SelectedDate="{Binding DataInicio}"
-                            md:HintAssist.Hint="Início" Margin="0,0,8,0"/>
-                <DatePicker Grid.Column="1" SelectedDate="{Binding DataFim}"
-                            md:HintAssist.Hint="Fim" Margin="0,0,8,0"/>
+                <TextBlock Grid.Column="0"
+                           Text="Secador"
+                           Style="{StaticResource MaterialDesignSubtitle2TextBlock}"
+                           VerticalAlignment="Center" Margin="0,0,12,0" Opacity="0.6"/>
+
+                <ComboBox Grid.Column="1"
+                          ItemsSource="{Binding Secadores}"
+                          SelectedItem="{Binding SecadorFiltro}"
+                          DisplayMemberPath="Nome"
+                          md:HintAssist.Hint="Todos os secadores"
+                          Style="{StaticResource MaterialDesignOutlinedComboBox}"/>
+
+                <!-- Chip mostrando qual secador está ativo -->
+                <Border Grid.Column="2"
+                        CornerRadius="20"
+                        Background="#E8F5E9" BorderBrush="#A5D6A7" BorderThickness="1"
+                        Padding="12,4" Margin="12,0,0,0" VerticalAlignment="Center"
+                        Visibility="{Binding TemSecadorFiltro,
+                            Converter={StaticResource BooleanToVisibilityConverter}}">
+                    <StackPanel Orientation="Horizontal">
+                        <md:PackIcon Kind="FilterCheck" Width="14" Height="14"
+                                     Foreground="#2E7D32" Margin="0,0,6,0"
+                                     VerticalAlignment="Center"/>
+                        <TextBlock Text="Exibindo: "
+                                   FontSize="12" Foreground="#2E7D32"
+                                   VerticalAlignment="Center"/>
+                        <TextBlock Text="{Binding SecadorFiltro.Nome}"
+                                   FontSize="12" FontWeight="SemiBold"
+                                   Foreground="#2E7D32" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- Texto quando nenhum secador selecionado -->
+                <TextBlock Grid.Column="2"
+                           Text="Exibindo todos os secadores"
+                           FontSize="12" Opacity="0.45"
+                           VerticalAlignment="Center" Margin="12,0,0,0"
+                           Visibility="{Binding TemSecadorFiltro,
+                               Converter={StaticResource InverseBoolToVisibilityConverter}}"/>
+
+                <Button Grid.Column="3"
+                        Command="{Binding LimparSecadorCommand}"
+                        Visibility="{Binding TemSecadorFiltro,
+                            Converter={StaticResource BooleanToVisibilityConverter}}"
+                        Style="{StaticResource MaterialDesignIconButton}"
+                        Width="32" Height="32" Padding="0"
+                        ToolTip="Limpar filtro de secador"
+                        Foreground="#C62828">
+                    <md:PackIcon Kind="Close" Width="16" Height="16"/>
+                </Button>
+            </Grid>
+        </Border>
+
+        <!-- ═══ FILTROS SECUNDÁRIOS ═══ -->
+        <Border Grid.Row="2" Background="White" CornerRadius="8"
+                Padding="16,12" Margin="0,0,0,8"
+                Effect="{StaticResource MaterialDesignShadowDepth1}">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="120"/>
+                    <!-- Data início -->
+                    <ColumnDefinition Width="120"/>
+                    <!-- Data fim -->
+                    <ColumnDefinition Width="*"/>
+                    <!-- Produto -->
+                    <ColumnDefinition Width="*"/>
+                    <!-- Silo -->
+                    <ColumnDefinition Width="*"/>
+                    <!-- Operador -->
+                    <ColumnDefinition Width="130"/>
+                    <!-- Status -->
+                    <ColumnDefinition Width="Auto"/>
+                    <!-- Botão buscar -->
+                </Grid.ColumnDefinitions>
+
+                <DatePicker Grid.Column="0"
+                            SelectedDate="{Binding DataInicio}"
+                            md:HintAssist.Hint="Início"
+                            Margin="0,0,8,0"/>
+
+                <DatePicker Grid.Column="1"
+                            SelectedDate="{Binding DataFim}"
+                            md:HintAssist.Hint="Fim"
+                            Margin="0,0,8,0"/>
 
                 <!-- Produto com limpar -->
                 <Grid Grid.Column="2" Margin="0,0,8,0">
@@ -52,10 +138,12 @@
                               DisplayMemberPath="Nome"
                               md:HintAssist.Hint="Produto"
                               Style="{StaticResource MaterialDesignOutlinedComboBox}"/>
-                    <Button Grid.Column="1" Command="{Binding LimparProdutoCommand}"
+                    <Button Grid.Column="1"
+                            Command="{Binding LimparProdutoCommand}"
                             Style="{StaticResource MaterialDesignIconButton}"
                             Width="24" Height="24" Padding="0"
-                            Visibility="{Binding TemProdutoFiltro, Converter={StaticResource BooleanToVisibilityConverter}}"
+                            Visibility="{Binding TemProdutoFiltro,
+                                Converter={StaticResource BooleanToVisibilityConverter}}"
                             ToolTip="Limpar">
                         <md:PackIcon Kind="Close" Width="14" Height="14"/>
                     </Button>
@@ -71,40 +159,21 @@
                               ItemsSource="{Binding Silos}"
                               SelectedItem="{Binding SiloFiltro}"
                               DisplayMemberPath="Nome"
-                              md:HintAssist.Hint="Silo"
+                              md:HintAssist.Hint="Silo destino"
                               Style="{StaticResource MaterialDesignOutlinedComboBox}"/>
-                    <Button Grid.Column="1" Command="{Binding LimparSiloCommand}"
+                    <Button Grid.Column="1"
+                            Command="{Binding LimparSiloCommand}"
                             Style="{StaticResource MaterialDesignIconButton}"
                             Width="24" Height="24" Padding="0"
-                            Visibility="{Binding TemSiloFiltro, Converter={StaticResource BooleanToVisibilityConverter}}"
-                            ToolTip="Limpar">
-                        <md:PackIcon Kind="Close" Width="14" Height="14"/>
-                    </Button>
-                </Grid>
-
-                <!-- Secador com limpar -->
-                <Grid Grid.Column="4" Margin="0,0,8,0">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="Auto"/>
-                    </Grid.ColumnDefinitions>
-                    <ComboBox Grid.Column="0"
-                              ItemsSource="{Binding Secadores}"
-                              SelectedItem="{Binding SecadorFiltro}"
-                              DisplayMemberPath="Nome"
-                              md:HintAssist.Hint="Secador"
-                              Style="{StaticResource MaterialDesignOutlinedComboBox}"/>
-                    <Button Grid.Column="1" Command="{Binding LimparSecadorCommand}"
-                            Style="{StaticResource MaterialDesignIconButton}"
-                            Width="24" Height="24" Padding="0"
-                            Visibility="{Binding TemSecadorFiltro, Converter={StaticResource BooleanToVisibilityConverter}}"
+                            Visibility="{Binding TemSiloFiltro,
+                                Converter={StaticResource BooleanToVisibilityConverter}}"
                             ToolTip="Limpar">
                         <md:PackIcon Kind="Close" Width="14" Height="14"/>
                     </Button>
                 </Grid>
 
                 <!-- Operador com limpar -->
-                <Grid Grid.Column="5" Margin="0,0,8,0">
+                <Grid Grid.Column="4" Margin="0,0,8,0">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="Auto"/>
@@ -115,34 +184,38 @@
                               DisplayMemberPath="Nome"
                               md:HintAssist.Hint="Operador"
                               Style="{StaticResource MaterialDesignOutlinedComboBox}"/>
-                    <Button Grid.Column="1" Command="{Binding LimparOperadorCommand}"
+                    <Button Grid.Column="1"
+                            Command="{Binding LimparOperadorCommand}"
                             Style="{StaticResource MaterialDesignIconButton}"
                             Width="24" Height="24" Padding="0"
-                            Visibility="{Binding TemOperadorFiltro, Converter={StaticResource BooleanToVisibilityConverter}}"
+                            Visibility="{Binding TemOperadorFiltro,
+                                Converter={StaticResource BooleanToVisibilityConverter}}"
                             ToolTip="Limpar">
                         <md:PackIcon Kind="Close" Width="14" Height="14"/>
                     </Button>
                 </Grid>
 
                 <!-- Status -->
-                <ComboBox Grid.Column="6"
+                <ComboBox Grid.Column="5"
                           ItemsSource="{Binding OpcoesStatus}"
                           SelectedItem="{Binding StatusFiltro}"
                           md:HintAssist.Hint="Status"
                           Style="{StaticResource MaterialDesignOutlinedComboBox}"
                           Margin="0,0,8,0"/>
 
-                <Button Grid.Column="7"
+                <!-- Botão Buscar -->
+                <Button Grid.Column="6"
                         Command="{Binding BuscarCommand}"
                         Style="{StaticResource MaterialDesignRaisedButton}"
-                        Height="52" Width="52" Padding="0" ToolTip="Buscar">
+                        Height="52" Width="52" Padding="0"
+                        ToolTip="Buscar">
                     <md:PackIcon Kind="Magnify" Width="22" Height="22"/>
                 </Button>
             </Grid>
         </Border>
 
-        <!-- Totalizadores + Exportação -->
-        <Border Grid.Row="2" Background="White" CornerRadius="8"
+        <!-- ═══ TOTALIZADORES + EXPORTAÇÃO ═══ -->
+        <Border Grid.Row="3" Background="White" CornerRadius="8"
                 Padding="16,10" Margin="0,0,0,8"
                 Effect="{StaticResource MaterialDesignShadowDepth1}">
             <Grid>
@@ -161,27 +234,40 @@
                     <TextBlock Text="{Binding TotalMedicoes}" FontSize="20" FontWeight="Bold"
                                Foreground="{DynamicResource MaterialDesign.Brush.Primary}"/>
                 </StackPanel>
+
                 <StackPanel Grid.Column="1" Margin="0,0,20,0">
                     <TextBlock Text="IDEAIS" FontSize="10" Opacity="0.5" FontWeight="Bold"/>
-                    <TextBlock Text="{Binding TotalIdeais}" FontSize="20" FontWeight="Bold" Foreground="#2E7D32"/>
+                    <TextBlock Text="{Binding TotalIdeais}" FontSize="20" FontWeight="Bold"
+                               Foreground="#2E7D32"/>
                 </StackPanel>
+
                 <StackPanel Grid.Column="2" Margin="0,0,20,0">
                     <TextBlock Text="ATENÇÃO" FontSize="10" Opacity="0.5" FontWeight="Bold"/>
-                    <TextBlock Text="{Binding TotalAtencao}" FontSize="20" FontWeight="Bold" Foreground="#E65100"/>
+                    <TextBlock Text="{Binding TotalAtencao}" FontSize="20" FontWeight="Bold"
+                               Foreground="#E65100"/>
                 </StackPanel>
+
                 <StackPanel Grid.Column="3" Margin="0,0,20,0">
                     <TextBlock Text="CRÍTICO" FontSize="10" Opacity="0.5" FontWeight="Bold"/>
-                    <TextBlock Text="{Binding TotalCritico}" FontSize="20" FontWeight="Bold" Foreground="#C62828"/>
+                    <TextBlock Text="{Binding TotalCritico}" FontSize="20" FontWeight="Bold"
+                               Foreground="#C62828"/>
                 </StackPanel>
+
                 <StackPanel Grid.Column="4" Margin="0,0,20,0">
                     <TextBlock Text="RODÍZIO" FontSize="10" Opacity="0.5" FontWeight="Bold"/>
-                    <TextBlock Text="{Binding TotalRodizio}" FontSize="20" FontWeight="Bold" Foreground="#6A1B9A"/>
+                    <TextBlock Text="{Binding TotalRodizio}" FontSize="20" FontWeight="Bold"
+                               Foreground="#6A1B9A"/>
                 </StackPanel>
-                <StackPanel Grid.Column="5">
+
+                <!-- Média entre medições (por secador/dia) -->
+                <StackPanel Grid.Column="5" VerticalAlignment="Center">
                     <TextBlock Text="MÉDIA ENTRE MEDIÇÕES" FontSize="10" Opacity="0.5" FontWeight="Bold"/>
                     <TextBlock Text="{Binding MediaIntervalo}" FontSize="12" FontWeight="SemiBold"
-                               Foreground="{DynamicResource MaterialDesign.Brush.Primary}" TextWrapping="Wrap"/>
+                               Foreground="{DynamicResource MaterialDesign.Brush.Primary}"
+                               TextWrapping="Wrap"/>
                 </StackPanel>
+
+                <!-- Botões exportar -->
                 <StackPanel Grid.Column="6" Orientation="Horizontal" VerticalAlignment="Center">
                     <Button Command="{Binding ExportarExcelCommand}"
                             Style="{StaticResource MaterialDesignOutlinedButton}"
@@ -194,7 +280,8 @@
                     </Button>
                     <Button Command="{Binding ExportarPdfCommand}"
                             Style="{StaticResource MaterialDesignOutlinedButton}"
-                            Height="36" BorderBrush="#C62828" Foreground="#C62828">
+                            Height="36"
+                            BorderBrush="#C62828" Foreground="#C62828">
                         <StackPanel Orientation="Horizontal">
                             <md:PackIcon Kind="FilePdfBox" Width="16" Height="16" Margin="0,0,4,0"/>
                             <TextBlock Text="PDF" FontSize="12"/>
@@ -204,11 +291,12 @@
             </Grid>
         </Border>
 
-        <!-- Resumo Rodízio -->
-        <Border Grid.Row="3" Background="#F3E5F5" CornerRadius="8"
+        <!-- ═══ RESUMO RODÍZIO ═══ -->
+        <Border Grid.Row="4" Background="#F3E5F5" CornerRadius="8"
                 Padding="12,8" Margin="0,0,0,8"
                 BorderBrush="#CE93D8" BorderThickness="1"
-                Visibility="{Binding TemResumoRodizio, Converter={StaticResource BooleanToVisibilityConverter}}">
+                Visibility="{Binding TemResumoRodizio,
+                    Converter={StaticResource BooleanToVisibilityConverter}}">
             <StackPanel>
                 <!-- Cabeçalho clicável -->
                 <Grid>
@@ -225,26 +313,39 @@
                             Style="{StaticResource MaterialDesignIconButton}"
                             Width="24" Height="24" Padding="0"
                             ToolTip="Minimizar/Expandir">
-                        <md:PackIcon Kind="{Binding ResumoExpandido, Converter={StaticResource BooleanToVisibilityConverter}}"
-                                     Width="14" Height="14" Foreground="#6A1B9A"/>
+                        <md:PackIcon Kind="ChevronDown" Width="14" Height="14" Foreground="#6A1B9A">
+                            <md:PackIcon.Style>
+                                <Style TargetType="md:PackIcon">
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding ResumoExpandido}" Value="False">
+                                            <Setter Property="Kind" Value="ChevronUp"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </md:PackIcon.Style>
+                        </md:PackIcon>
                     </Button>
                 </Grid>
+
                 <!-- Conteúdo expansível -->
                 <TextBlock Text="{Binding ResumoRodizio}"
                            Foreground="#4A148C" FontSize="12"
-                           TextWrapping="Wrap" Margin="0,4,0,0"
-                           Visibility="{Binding ResumoExpandido, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+                           TextWrapping="Wrap" Margin="0,6,0,0"
+                           Visibility="{Binding ResumoExpandido,
+                               Converter={StaticResource BooleanToVisibilityConverter}}"/>
             </StackPanel>
         </Border>
 
-        <!-- Tabela -->
-        <Border Grid.Row="4" Background="White" CornerRadius="8"
+        <!-- ═══ TABELA DE MEDIÇÕES ═══ -->
+        <Border Grid.Row="5" Background="White" CornerRadius="8"
                 Effect="{StaticResource MaterialDesignShadowDepth1}">
             <DataGrid ItemsSource="{Binding Linhas}"
                       AutoGenerateColumns="False" CanUserAddRows="False"
                       IsReadOnly="True" GridLinesVisibility="Horizontal"
                       HeadersVisibility="Column" Background="Transparent"
                       BorderThickness="0" FontSize="12">
+
+                <!-- Linha roxa para rodízio -->
                 <DataGrid.RowStyle>
                     <Style TargetType="DataGridRow">
                         <Setter Property="FontWeight" Value="Normal"/>
@@ -256,18 +357,35 @@
                         </Style.Triggers>
                     </Style>
                 </DataGrid.RowStyle>
+
                 <DataGrid.Columns>
+
+                    <!-- Data/Hora -->
                     <DataGridTextColumn Header="Data/Hora"
                                         Binding="{Binding DataHora, StringFormat={}{0:dd/MM/yy HH:mm}}"
                                         Width="105"/>
-                    <DataGridTextColumn Header="Operador"     Binding="{Binding Operador}"    Width="*"/>
-                    <DataGridTextColumn Header="Produto"      Binding="{Binding Produto}"     Width="*"/>
+
+                    <!-- Operador -->
+                    <DataGridTextColumn Header="Operador"
+                                        Binding="{Binding Operador}"
+                                        Width="*"/>
+
+                    <!-- Produto -->
+                    <DataGridTextColumn Header="Produto"
+                                        Binding="{Binding Produto}"
+                                        Width="*"/>
+
+                    <!-- Umidade -->
                     <DataGridTextColumn Header="Umidade"
-                                        Binding="{Binding Umidade, StringFormat={}{0:F1}%}"   Width="75"/>
+                                        Binding="{Binding Umidade, StringFormat={}{0:F1}%}"
+                                        Width="75"/>
+
+                    <!-- Status com cor -->
                     <DataGridTemplateColumn Header="Status" Width="80">
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
-                                <TextBlock Text="{Binding Status}" FontWeight="SemiBold" FontSize="12">
+                                <TextBlock Text="{Binding Status}"
+                                           FontWeight="SemiBold" FontSize="12">
                                     <TextBlock.Style>
                                         <Style TargetType="TextBlock">
                                             <Style.Triggers>
@@ -287,11 +405,74 @@
                             </DataTemplate>
                         </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>
-                    <DataGridTextColumn Header="Secador"      Binding="{Binding Secador}"     Width="*"/>
-                    <DataGridTextColumn Header="Equipamento"  Binding="{Binding Equipamento}" Width="*"/>
-                    <DataGridTextColumn Header="Silo Destino" Binding="{Binding SiloDestino}" Width="*"/>
-                    <DataGridTextColumn Header="Intervalo"    Binding="{Binding Intervalo}"   Width="75"/>
-                    <DataGridTextColumn Header="Obs."         Binding="{Binding Observacao}"  Width="120"/>
+
+                    <!-- Secador — oculto quando filtro de secador ativo (reduz ruído visual) -->
+                    <DataGridTextColumn Header="Secador"
+                                        Binding="{Binding Secador}"
+                                        Width="*">
+                        <DataGridTextColumn.HeaderStyle>
+                            <Style TargetType="DataGridColumnHeader"
+                                   BasedOn="{StaticResource {x:Type DataGridColumnHeader}}">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding DataContext.TemSecadorFiltro,
+                                        RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                                 Value="True">
+                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </DataGridTextColumn.HeaderStyle>
+                        <DataGridTextColumn.CellStyle>
+                            <Style TargetType="DataGridCell">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding DataContext.TemSecadorFiltro,
+                                        RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                                 Value="True">
+                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </DataGridTextColumn.CellStyle>
+                    </DataGridTextColumn>
+
+                    <!-- Equipamento -->
+                    <DataGridTextColumn Header="Equipamento"
+                                        Binding="{Binding Equipamento}"
+                                        Width="*"/>
+
+                    <!-- Silo Destino -->
+                    <DataGridTextColumn Header="Silo Destino"
+                                        Binding="{Binding SiloDestino}"
+                                        Width="*"/>
+
+                    <!-- Intervalo — calculado por secador -->
+                    <DataGridTemplateColumn Header="Intervalo" Width="80">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding Intervalo}" FontSize="12">
+                                    <TextBlock.Style>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="Foreground"
+                                                    Value="{DynamicResource MaterialDesign.Brush.ForegroundLight}"/>
+                                            <Style.Triggers>
+                                                <!-- Destaca intervalos curtos (pode indicar problema) -->
+                                                <DataTrigger Binding="{Binding Intervalo}" Value="—">
+                                                    <Setter Property="Opacity" Value="0.4"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </TextBlock.Style>
+                                </TextBlock>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+
+                    <!-- Observação -->
+                    <DataGridTextColumn Header="Obs."
+                                        Binding="{Binding Observacao}"
+                                        Width="120"/>
+
+                    <!-- Ações (Admin) -->
                     <DataGridTemplateColumn Header="Ações" Width="160">
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
@@ -299,10 +480,10 @@
                                             Visibility="{Binding DataContext.IsAdmin,
                                                 RelativeSource={RelativeSource AncestorType=DataGrid},
                                                 Converter={StaticResource BooleanToVisibilityConverter}}">
-                                    <!-- Editar — badge verde -->
+
+                                    <!-- Editar -->
                                     <Border Background="#E8F5E9" CornerRadius="12"
-                                            Padding="6,3" Margin="2,0"
-                                            Cursor="Hand">
+                                            Padding="6,3" Margin="2,0" Cursor="Hand">
                                         <Border.InputBindings>
                                             <MouseBinding MouseAction="LeftClick"
                                                           Command="{Binding DataContext.EditarMedicaoCommand,
@@ -317,10 +498,10 @@
                                                        VerticalAlignment="Center"/>
                                         </StackPanel>
                                     </Border>
-                                    <!-- Excluir — badge vermelho -->
+
+                                    <!-- Excluir -->
                                     <Border Background="#FFEBEE" CornerRadius="12"
-                                            Padding="6,3" Margin="2,0"
-                                            Cursor="Hand">
+                                            Padding="6,3" Margin="2,0" Cursor="Hand">
                                         <Border.InputBindings>
                                             <MouseBinding MouseAction="LeftClick"
                                                           Command="{Binding DataContext.ExcluirMedicaoCommand,
@@ -335,12 +516,15 @@
                                                        VerticalAlignment="Center"/>
                                         </StackPanel>
                                     </Border>
+
                                 </StackPanel>
                             </DataTemplate>
                         </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>
+
                 </DataGrid.Columns>
             </DataGrid>
         </Border>
+
     </Grid>
 </UserControl>
