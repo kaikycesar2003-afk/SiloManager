@@ -108,14 +108,11 @@ namespace SiloManager.WPF.ViewModels
                 usuarioId: UsuarioFiltro?.Id,
                 siloId: SiloFiltro?.Id);
 
-            // Converte tudo — o Converter já calcula intervalo por secador corretamente
             _linhasCompletas = RelatorioService.Converter(medicoes);
 
-            // Filtro de secador aplicado APÓS converter para manter os intervalos corretos
-            // (converter precisa ver todas as medições do secador para calcular o intervalo certo)
             if (SecadorFiltro != null)
                 _linhasCompletas = _linhasCompletas
-                    .Where(l => l.SecadorId == SecadorFiltro.Id).ToList();
+                    .Where(l => l.Secador == SecadorFiltro.Nome).ToList();
 
             AtualizarTabela();
             AtualizarTotalizadores();
@@ -153,6 +150,10 @@ namespace SiloManager.WPF.ViewModels
             MediaIntervalo = RelatorioService.CalcularMediaIntervalo(_linhasCompletas);
         }
 
+        // ═══════════════════════════════════════════════════════════════════
+        //  RESUMO RODÍZIO — corrigido para detectar múltiplos episódios
+        //  por secador (bug: GroupBy simples fundia todos os ciclos do dia)
+        // ═══════════════════════════════════════════════════════════════════
         private void AtualizarResumoRodizio()
         {
             if (_linhasCompletas.Count == 0)
@@ -162,56 +163,68 @@ namespace SiloManager.WPF.ViewModels
                 return;
             }
 
-            var todasOrdenadas = _linhasCompletas.OrderBy(l => l.DataHora).ToList();
             var resumos = new List<string>();
 
-            // Agrupa por SecadorId — nome pode ter duplicatas em edge cases
-            foreach (var secadorGrupo in todasOrdenadas
-                .GroupBy(l => l.SecadorId)
-                .OrderBy(g => g.First().Secador))
+            // Itera por secador, mantendo a ordem cronológica dentro de cada um
+            foreach (var secadorGrupo in _linhasCompletas
+                .GroupBy(l => l.Secador)
+                .OrderBy(g => g.Key))
             {
-                var medicoesDeste = secadorGrupo.OrderBy(l => l.DataHora).ToList();
-                var nomeSecador = medicoesDeste.First().Secador;
+                var medicoesDosecador = secadorGrupo.OrderBy(l => l.DataHora).ToList();
+                var secadorLabel = secadorGrupo.Key != "—" ? secadorGrupo.Key : "Sem secador";
 
-                bool emRodizio = false;
-                DateTime? inicioRodizio = null;
-                int countRodizio = 0;
+                // Detecta episódios contínuos de rodízio:
+                // um novo episódio começa quando aparece uma medição normal entre retrabalhos
+                var episodios = new List<List<RelatorioLinhaDto>>();
+                List<RelatorioLinhaDto>? episodioAtual = null;
 
-                foreach (var linha in medicoesDeste)
+                foreach (var linha in medicoesDosecador)
                 {
-                    if (linha.IsRetrabalho && !emRodizio)
+                    if (linha.IsRetrabalho)
                     {
-                        // ── Inicia novo ciclo de rodízio ──
-                        emRodizio = true;
-                        inicioRodizio = linha.DataHora;
-                        countRodizio = 1;
+                        episodioAtual ??= new List<RelatorioLinhaDto>();
+                        episodioAtual.Add(linha);
                     }
-                    else if (linha.IsRetrabalho && emRodizio)
+                    else
                     {
-                        // Continua no rodízio
-                        countRodizio++;
+                        // Medição normal: fecha o episódio em andamento
+                        if (episodioAtual != null)
+                        {
+                            episodios.Add(episodioAtual);
+                            episodioAtual = null;
+                        }
                     }
-                    else if (!linha.IsRetrabalho && emRodizio)
-                    {
-                        // ── Saiu do rodízio — esta medição é a primeira fora ──
-                        emRodizio = false;
-                        var duracao = linha.DataHora - inicioRodizio!.Value;
-                        resumos.Add(
-                            $"🔄 {nomeSecador}: {inicioRodizio:HH:mm} → {linha.DataHora:HH:mm} " +
-                            $"({FormatarDuracao(duracao)}) — {countRodizio} medição(ões)");
-                        inicioRodizio = null;
-                        countRodizio = 0;
-                    }
-                    // Se !IsRetrabalho && !emRodizio → medição normal, ignora para o resumo
                 }
 
-                // Secador ainda em rodízio ao final do período buscado
-                if (emRodizio && inicioRodizio.HasValue)
+                // Fecha episódio que ainda está aberto (secador ainda em rodízio)
+                if (episodioAtual != null)
+                    episodios.Add(episodioAtual);
+
+                foreach (var episodio in episodios)
                 {
-                    var duracao = DateTime.Now - inicioRodizio.Value;
-                    resumos.Add(
-                        $"🔄 {nomeSecador}: {inicioRodizio:HH:mm} → ainda em rodízio " +
-                        $"({FormatarDuracao(duracao)}) — {countRodizio} medição(ões)");
+                    var inicio = episodio.First().DataHora;
+                    var fim = episodio.Last().DataHora;
+
+                    // Próxima medição normal do secador APÓS o fim deste episódio
+                    var saida = medicoesDosecador
+                        .Where(l => !l.IsRetrabalho && l.DataHora > fim)
+                        .OrderBy(l => l.DataHora)
+                        .FirstOrDefault();
+
+                    if (saida != null)
+                    {
+                        var duracao = saida.DataHora - inicio;
+                        resumos.Add(
+                            $"🔄 {secadorLabel}: {inicio:HH:mm} → {saida.DataHora:HH:mm} " +
+                            $"({FormatarDuracao(duracao)}) — {episodio.Count} medições");
+                    }
+                    else
+                    {
+                        var duracao = DateTime.Now - inicio;
+                        resumos.Add(
+                            $"🔄 {secadorLabel}: {inicio:HH:mm} → ainda em rodízio " +
+                            $"({FormatarDuracao(duracao)}) — {episodio.Count} medições");
+                    }
                 }
             }
 
@@ -291,7 +304,6 @@ namespace SiloManager.WPF.ViewModels
             ProdutoId = ProdutoFiltro?.Id,
             SiloId = SiloFiltro?.Id,
             UsuarioId = UsuarioFiltro?.Id,
-            SecadorId = SecadorFiltro?.Id,
             ProdutoNome = ProdutoFiltro?.Nome,
             SiloNome = SiloFiltro?.Nome,
             SecadorNome = SecadorFiltro?.Nome,
