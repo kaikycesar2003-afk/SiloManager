@@ -1,7 +1,9 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using SiloManager.Application.Services;
 using SiloManager.Application.Session;
 using SiloManager.Domain.Entities;
+using SiloManager.Domain.Enums;
 using SiloManager.Domain.Interfaces.Repositories;
 using System.Collections.ObjectModel;
 using System.Windows;
@@ -11,6 +13,8 @@ namespace SiloManager.WPF.ViewModels
     public partial class EmpresaViewModel : ObservableObject
     {
         private readonly IEmpresaRepository _repo;
+        private readonly IUsuarioRepository _usuarioRepo;
+        private readonly IConfiguracaoRepository _configuracaoRepo;
 
         [ObservableProperty] private string _nomeEmpresa = string.Empty;
         [ObservableProperty] private string _cnpjEmpresa = string.Empty;
@@ -19,9 +23,14 @@ namespace SiloManager.WPF.ViewModels
 
         public ObservableCollection<Empresa> Empresas { get; } = new();
 
-        public EmpresaViewModel(IEmpresaRepository repo)
+        public EmpresaViewModel(
+            IEmpresaRepository repo,
+            IUsuarioRepository usuarioRepo,
+            IConfiguracaoRepository configuracaoRepo)
         {
             _repo = repo;
+            _usuarioRepo = usuarioRepo;
+            _configuracaoRepo = configuracaoRepo;
             _ = CarregarAsync();
         }
 
@@ -61,6 +70,7 @@ namespace SiloManager.WPF.ViewModels
 
             if (_editandoId.HasValue)
             {
+                // ── Edição: só atualiza nome e CNPJ ──
                 var empresa = await _repo.GetByIdAsync(_editandoId.Value);
                 if (empresa != null)
                 {
@@ -73,13 +83,44 @@ namespace SiloManager.WPF.ViewModels
             }
             else
             {
-                await _repo.AddAsync(new Empresa
+                // ── Nova empresa: cria empresa + admin padrão + configuração ──
+                var novaEmpresa = new Empresa
                 {
                     Nome = NomeEmpresa,
                     CNPJ = CnpjEmpresa,
                     Ativo = true
+                };
+                await _repo.AddAsync(novaEmpresa);
+                await _repo.SaveChangesAsync(); // salva para obter o Id gerado
+
+                // Admin padrão — login: admin / senha: admin123
+                await _usuarioRepo.AddAsync(new Usuario
+                {
+                    EmpresaId = novaEmpresa.Id,
+                    Nome = "Administrador",
+                    Login = "admin",
+                    SenhaHash = AuthService.GerarHash("admin123"),
+                    Nivel = NivelAcesso.Administrador,
+                    Ativo = true
                 });
-                await _repo.SaveChangesAsync();
+
+                // Configuração padrão (timer de 15 minutos)
+                await _configuracaoRepo.AddAsync(new Configuracao
+                {
+                    EmpresaId = novaEmpresa.Id,
+                    IntervaloMinimoSegundos = 900
+                });
+
+                await _usuarioRepo.SaveChangesAsync();
+
+                MessageBox.Show(
+                    $"✅ Empresa '{novaEmpresa.Nome}' criada!\n\n" +
+                    $"Usuário padrão criado:\n" +
+                    $"  Login: admin\n" +
+                    $"  Senha: admin123\n\n" +
+                    $"Troque a senha após o primeiro acesso.",
+                    "Empresa criada",
+                    MessageBoxButton.OK, MessageBoxImage.Information);
             }
 
             LimparFormulario();
