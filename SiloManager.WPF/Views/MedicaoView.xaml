@@ -4,261 +4,257 @@
              xmlns:md="http://materialdesigninxaml.net/winfx/xaml/themes"
              Background="#F5F0E8">
 
-    <Grid Margin="8">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
-        </Grid.RowDefinitions>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="*"/>
-            <ColumnDefinition Width="320"/>
-        </Grid.ColumnDefinitions>
+    <!-- ScrollViewer como segurança para resoluções muito pequenas -->
+    <ScrollViewer VerticalScrollBarVisibility="Auto"
+                  HorizontalScrollBarVisibility="Disabled">
 
-        <!-- Título -->
-        <TextBlock Grid.Row="0" Grid.ColumnSpan="2"
-                   Text="📊 Medição"
-                   Style="{StaticResource MaterialDesignHeadline5TextBlock}"
-                   Margin="0,0,0,16"/>
+        <Grid Margin="8,6,8,6">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="300"/>
+            </Grid.ColumnDefinitions>
 
-        <!-- ═══ Equipamento fixo + Secador + Capturar ═══ -->
-        <Border Grid.Row="1" Grid.Column="0"
-                Background="White" CornerRadius="8"
-                Padding="20" Margin="0,0,12,12"
-                Effect="{StaticResource MaterialDesignShadowDepth1}">
-            <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="Auto"/>
-                </Grid.ColumnDefinitions>
+            <!-- Título -->
+            <TextBlock Grid.Row="0" Grid.ColumnSpan="2"
+                       Text="📊 Medição"
+                       Style="{StaticResource MaterialDesignHeadline5TextBlock}"
+                       Margin="0,0,0,10"/>
 
-                <!-- Equipamento fixo (somente leitura) -->
-                <StackPanel Grid.Column="0" Margin="0,0,12,0" VerticalAlignment="Center">
-                    <TextBlock Text="EQUIPAMENTO" FontSize="10"
-                               Opacity="0.5" FontWeight="Bold" Margin="0,0,0,4"/>
-                    <TextBlock Text="{Binding EquipamentoFixo.Nome}"
-                               FontSize="16" FontWeight="SemiBold"
-                               Foreground="{DynamicResource MaterialDesign.Brush.Primary}"/>
-                    <TextBlock Text="{Binding EquipamentoFixo.PortaCOM}"
-                               FontSize="12" Opacity="0.6"/>
-                </StackPanel>
+            <!-- ═══ Equipamento fixo + Secador + Capturar ═══ -->
+            <Border Grid.Row="1" Grid.Column="0"
+                    Background="White" CornerRadius="8"
+                    Padding="16,12" Margin="0,0,10,10"
+                    Effect="{StaticResource MaterialDesignShadowDepth1}">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
 
-                <!-- Secador — bloqueado durante captura e enquanto leitura aguarda confirmação -->
-                <ComboBox Grid.Column="1"
-                          ItemsSource="{Binding Secadores}"
-                          SelectedItem="{Binding SecadorSelecionado}"
-                          DisplayMemberPath="Nome"
-                          IsEnabled="{Binding SecadorHabilitado}"
-                          md:HintAssist.Hint="Selecione o Secador *"
-                          Style="{StaticResource MaterialDesignOutlinedComboBox}"
-                          Margin="0,0,12,0"/>
-
-                <!-- ═══ Botão CAPTURAR / DESCONECTAR ═══
-                     Cor controlada por DataTrigger pois MaterialDesign sobrescreve
-                     o Background definido diretamente na propriedade.
-                     AguardandoCaptura=True  → vermelho escuro (#B71C1C) = DESCONECTAR
-                     AguardandoCaptura=False → cor padrão do tema               -->
-                <Button Grid.Column="2"
-                        Command="{Binding CapturarCommand}"
-                        Height="56" MinWidth="140">
-                    <Button.Style>
-                        <Style BasedOn="{StaticResource MaterialDesignRaisedButton}"
-                               TargetType="Button">
-                            <Style.Triggers>
-                                <!-- Modo DESCONECTAR: fundo vermelho escuro -->
-                                <DataTrigger Binding="{Binding AguardandoCaptura}" Value="True">
-                                    <Setter Property="Background"   Value="#B71C1C"/>
-                                    <Setter Property="BorderBrush"  Value="#B71C1C"/>
-                                    <Setter Property="Foreground"   Value="White"/>
-                                </DataTrigger>
-                            </Style.Triggers>
-                        </Style>
-                    </Button.Style>
-                    <StackPanel Orientation="Horizontal">
-                        <md:PackIcon Kind="{Binding IconeBotaoCapturar}"
-                                     Width="20" Height="20" Margin="0,0,8,0"/>
-                        <TextBlock Text="{Binding TextoBotaoCapturar}" FontWeight="Bold"/>
+                    <StackPanel Grid.Column="0" Margin="0,0,12,0" VerticalAlignment="Center">
+                        <TextBlock Text="EQUIPAMENTO" FontSize="10"
+                                   Opacity="0.5" FontWeight="Bold" Margin="0,0,0,2"/>
+                        <TextBlock Text="{Binding EquipamentoFixo.Nome}"
+                                   FontSize="15" FontWeight="SemiBold"
+                                   Foreground="{DynamicResource MaterialDesign.Brush.Primary}"/>
+                        <TextBlock Text="{Binding EquipamentoFixo.PortaCOM}"
+                                   FontSize="12" Opacity="0.6"/>
                     </StackPanel>
-                </Button>
-            </Grid>
-        </Border>
 
-        <!-- ═══ Resultado da Leitura ═══ -->
-        <Border Grid.Row="2" Grid.Column="0"
-                Background="White" CornerRadius="8"
-                Padding="24" Margin="0,0,12,12"
-                Effect="{StaticResource MaterialDesignShadowDepth1}">
-            <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="Auto"/>
-                </Grid.ColumnDefinitions>
+                    <ComboBox Grid.Column="1"
+                              ItemsSource="{Binding Secadores}"
+                              SelectedItem="{Binding SecadorSelecionado}"
+                              DisplayMemberPath="Nome"
+                              IsEnabled="{Binding SecadorHabilitado}"
+                              md:HintAssist.Hint="Selecione o Secador *"
+                              Style="{StaticResource MaterialDesignOutlinedComboBox}"
+                              Margin="0,0,10,0"/>
 
-                <StackPanel Grid.Column="0">
-
-                    <TextBlock Text="{Binding UmidadeDisplay}"
-                               FontSize="64" FontWeight="Bold"
-                               Foreground="{Binding CorSemaforo}"
-                               HorizontalAlignment="Center"/>
-
-                    <TextBlock Text="{Binding StatusDisplay}"
-                               FontSize="16" FontWeight="SemiBold"
-                               Foreground="{Binding CorSemaforo}"
-                               HorizontalAlignment="Center"
-                               Margin="0,0,0,16"/>
-
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="*"/>
-                        </Grid.ColumnDefinitions>
-
-                        <StackPanel Grid.Column="0" Margin="0,0,8,0">
-                            <TextBlock Text="PRODUTO" FontSize="10"
-                                       Opacity="0.5" FontWeight="Bold"/>
-                            <TextBlock Text="{Binding ProdutoDetectado}"
-                                       FontSize="18" FontWeight="SemiBold"/>
+                    <!-- Botão CAPTURAR / DESCONECTAR -->
+                    <Button Grid.Column="2"
+                            Command="{Binding CapturarCommand}"
+                            Height="48" MinWidth="130">
+                        <Button.Style>
+                            <Style BasedOn="{StaticResource MaterialDesignRaisedButton}"
+                                   TargetType="Button">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding AguardandoCaptura}" Value="True">
+                                        <Setter Property="Background"  Value="#B71C1C"/>
+                                        <Setter Property="BorderBrush" Value="#B71C1C"/>
+                                        <Setter Property="Foreground"  Value="White"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Button.Style>
+                        <StackPanel Orientation="Horizontal">
+                            <md:PackIcon Kind="{Binding IconeBotaoCapturar}"
+                                         Width="20" Height="20" Margin="0,0,8,0"/>
+                            <TextBlock Text="{Binding TextoBotaoCapturar}" FontWeight="Bold"/>
                         </StackPanel>
-
-                        <StackPanel Grid.Column="1">
-                            <TextBlock Text="SECADOR" FontSize="10"
-                                       Opacity="0.5" FontWeight="Bold"/>
-                            <TextBlock Text="{Binding SecadorSelecionado.Nome}"
-                                       FontSize="16" FontWeight="SemiBold"
-                                       Foreground="{DynamicResource MaterialDesign.Brush.Primary}"/>
-                        </StackPanel>
-                    </Grid>
-
-                    <Grid Margin="0,12,0,0">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="*"/>
-                        </Grid.ColumnDefinitions>
-                        <StackPanel Grid.Column="0">
-                            <TextBlock Text="HORA SISTEMA" FontSize="10"
-                                       Opacity="0.5" FontWeight="Bold"/>
-                            <TextBlock Text="{Binding HoraSistema}" FontSize="13"/>
-                        </StackPanel>
-                        <StackPanel Grid.Column="1">
-                            <TextBlock Text="HORA EQUIPAMENTO" FontSize="10"
-                                       Opacity="0.5" FontWeight="Bold"/>
-                            <TextBlock Text="{Binding HoraEquipamento}" FontSize="13"/>
-                        </StackPanel>
-                    </Grid>
-                </StackPanel>
-
-                <!-- Barra semáforo -->
-                <Border Grid.Column="1" Width="24" CornerRadius="12"
-                        Background="{Binding CorSemaforo}"
-                        Margin="16,0,0,0" Opacity="0.85"/>
-            </Grid>
-        </Border>
-
-        <!-- ═══ Destino ═══ -->
-        <Border Grid.Row="3" Grid.Column="0"
-                Background="White" CornerRadius="8"
-                Padding="24" Margin="0,0,12,0"
-                Effect="{StaticResource MaterialDesignShadowDepth1}"
-                IsEnabled="{Binding LeituraRecebida}">
-            <StackPanel>
-                <TextBlock Text="DESTINO DO GRÃO"
-                           FontSize="11" FontWeight="Bold"
-                           Opacity="0.5" Margin="0,0,0,12"/>
-
-                <ComboBox ItemsSource="{Binding SilosDisponiveis}"
-                          SelectedItem="{Binding SiloDestinoSelecionado}"
-                          DisplayMemberPath="Nome"
-                          md:HintAssist.Hint="Selecione o Destino"
-                          Style="{StaticResource MaterialDesignOutlinedComboBox}"
-                          Margin="0,0,0,16"/>
-
-                <TextBox Text="{Binding Observacao, UpdateSourceTrigger=PropertyChanged}"
-                         md:HintAssist.Hint="Observação (opcional)"
-                         Style="{StaticResource MaterialDesignOutlinedTextBox}"
-                         Margin="0,0,0,16"/>
-
-                <Button Command="{Binding ConfirmarCommand}"
-                        Content="✅  CONFIRMAR MEDIÇÃO"
-                        Style="{StaticResource MaterialDesignRaisedButton}"
-                        HorizontalAlignment="Stretch"
-                        Height="48" FontSize="15" FontWeight="Bold"/>
-            </StackPanel>
-        </Border>
-
-        <!-- ═══ Painel Direito — Timer + Últimas ═══ -->
-        <StackPanel Grid.Row="1" Grid.RowSpan="3" Grid.Column="1">
-
-            <!-- Timer -->
-            <Border Background="White" CornerRadius="8"
-                    Padding="20" Margin="0,0,0,12"
-                    Effect="{StaticResource MaterialDesignShadowDepth1}">
-                <StackPanel HorizontalAlignment="Center">
-                    <TextBlock Text="PRÓXIMA MEDIÇÃO"
-                               FontSize="11" FontWeight="Bold"
-                               Opacity="0.5" HorizontalAlignment="Center"/>
-                    <TextBlock Text="{Binding TimerDisplay}"
-                               FontSize="40" FontWeight="Bold"
-                               HorizontalAlignment="Center"
-                               Foreground="{Binding CorTimer}"/>
-                    <TextBlock Text="{Binding StatusTimer}"
-                               FontSize="13" FontWeight="SemiBold"
-                               HorizontalAlignment="Center"
-                               Foreground="{Binding CorTimer}"
-                               Margin="0,4,0,0"/>
-                    <ProgressBar Value="{Binding ProgressoTimer}"
-                                 Maximum="100" Height="6"
-                                 Margin="0,8,0,0"
-                                 Foreground="{Binding CorTimer}"/>
-                </StackPanel>
+                    </Button>
+                </Grid>
             </Border>
 
-            <!-- Últimas medições -->
-            <Border Background="White" CornerRadius="8"
-                    Padding="16"
+            <!-- ═══ Resultado da Leitura ═══ -->
+            <Border Grid.Row="2" Grid.Column="0"
+                    Background="White" CornerRadius="8"
+                    Padding="20,12" Margin="0,0,10,10"
                     Effect="{StaticResource MaterialDesignShadowDepth1}">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel Grid.Column="0">
+                        <TextBlock Text="{Binding UmidadeDisplay}"
+                                   FontSize="54" FontWeight="Bold"
+                                   Foreground="{Binding CorSemaforo}"
+                                   HorizontalAlignment="Center"/>
+
+                        <TextBlock Text="{Binding StatusDisplay}"
+                                   FontSize="15" FontWeight="SemiBold"
+                                   Foreground="{Binding CorSemaforo}"
+                                   HorizontalAlignment="Center"
+                                   Margin="0,0,0,10"/>
+
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0" Margin="0,0,8,0">
+                                <TextBlock Text="PRODUTO" FontSize="10"
+                                           Opacity="0.5" FontWeight="Bold"/>
+                                <TextBlock Text="{Binding ProdutoDetectado}"
+                                           FontSize="16" FontWeight="SemiBold"/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="1">
+                                <TextBlock Text="SECADOR" FontSize="10"
+                                           Opacity="0.5" FontWeight="Bold"/>
+                                <TextBlock Text="{Binding SecadorSelecionado.Nome}"
+                                           FontSize="15" FontWeight="SemiBold"
+                                           Foreground="{DynamicResource MaterialDesign.Brush.Primary}"/>
+                            </StackPanel>
+                        </Grid>
+
+                        <Grid Margin="0,8,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Text="HORA SISTEMA" FontSize="10"
+                                           Opacity="0.5" FontWeight="Bold"/>
+                                <TextBlock Text="{Binding HoraSistema}" FontSize="13"/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="1">
+                                <TextBlock Text="HORA EQUIPAMENTO" FontSize="10"
+                                           Opacity="0.5" FontWeight="Bold"/>
+                                <TextBlock Text="{Binding HoraEquipamento}" FontSize="13"/>
+                            </StackPanel>
+                        </Grid>
+                    </StackPanel>
+
+                    <!-- Barra semáforo -->
+                    <Border Grid.Column="1" Width="22" CornerRadius="11"
+                            Background="{Binding CorSemaforo}"
+                            Margin="14,0,0,0" Opacity="0.85"/>
+                </Grid>
+            </Border>
+
+            <!-- ═══ Destino ═══ -->
+            <Border Grid.Row="3" Grid.Column="0"
+                    Background="White" CornerRadius="8"
+                    Padding="20,12" Margin="0,0,10,0"
+                    Effect="{StaticResource MaterialDesignShadowDepth1}"
+                    IsEnabled="{Binding LeituraRecebida}">
                 <StackPanel>
-                    <TextBlock Text="ÚLTIMAS MEDIÇÕES"
+                    <TextBlock Text="DESTINO DO GRÃO"
                                FontSize="11" FontWeight="Bold"
-                               Opacity="0.5" Margin="0,0,0,12"/>
-                    <ItemsControl ItemsSource="{Binding UltimasMedicoes}">
-                        <ItemsControl.ItemTemplate>
-                            <DataTemplate>
-                                <Border BorderBrush="#EEE" BorderThickness="0,0,0,1"
-                                        Padding="0,8">
-                                    <Grid>
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="*"/>
-                                            <ColumnDefinition Width="Auto"/>
-                                        </Grid.ColumnDefinitions>
-                                        <StackPanel Grid.Column="0">
-                                            <TextBlock Text="{Binding Produto.Nome}"
-                                                       FontWeight="SemiBold"/>
-                                            <TextBlock Text="{Binding SiloDestino.Nome}"
-                                                       FontSize="11" Opacity="0.6"/>
-                                            <Border Background="#E8F5E9" CornerRadius="4"
-                                                    Padding="4,2" Margin="0,2,0,2"
-                                                    HorizontalAlignment="Left">
-                                                <TextBlock Text="{Binding Secador.Nome}"
-                                                           FontSize="11" FontWeight="SemiBold"
-                                                           Foreground="#2E7D32"/>
-                                            </Border>
-                                            <TextBlock Text="{Binding DataHoraSistema, StringFormat={}{0:HH:mm}}"
-                                                       FontSize="11" Opacity="0.5"/>
-                                        </StackPanel>
-                                        <TextBlock Grid.Column="1"
-                                                   Text="{Binding Umidade, StringFormat={}{0:F1}%}"
-                                                   FontSize="20" FontWeight="Bold"
-                                                   Foreground="#2E7D32"
-                                                   VerticalAlignment="Center"/>
-                                    </Grid>
-                                </Border>
-                            </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                    </ItemsControl>
+                               Opacity="0.5" Margin="0,0,0,8"/>
+
+                    <ComboBox ItemsSource="{Binding SilosDisponiveis}"
+                              SelectedItem="{Binding SiloDestinoSelecionado}"
+                              DisplayMemberPath="Nome"
+                              md:HintAssist.Hint="Selecione o Destino"
+                              Style="{StaticResource MaterialDesignOutlinedComboBox}"
+                              Margin="0,0,0,10"/>
+
+                    <TextBox Text="{Binding Observacao, UpdateSourceTrigger=PropertyChanged}"
+                             md:HintAssist.Hint="Observação (opcional)"
+                             Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                             Margin="0,0,0,10"/>
+
+                    <Button Command="{Binding ConfirmarCommand}"
+                            Content="✅  CONFIRMAR MEDIÇÃO"
+                            Style="{StaticResource MaterialDesignRaisedButton}"
+                            HorizontalAlignment="Stretch"
+                            Height="44" FontSize="14" FontWeight="Bold"/>
                 </StackPanel>
             </Border>
-        </StackPanel>
-    </Grid>
+
+            <!-- ═══ Painel Direito — Timer + Últimas ═══ -->
+            <StackPanel Grid.Row="1" Grid.RowSpan="3" Grid.Column="1">
+
+                <!-- Timer -->
+                <Border Background="White" CornerRadius="8"
+                        Padding="16,12" Margin="0,0,0,10"
+                        Effect="{StaticResource MaterialDesignShadowDepth1}">
+                    <StackPanel HorizontalAlignment="Center">
+                        <TextBlock Text="PRÓXIMA MEDIÇÃO"
+                                   FontSize="11" FontWeight="Bold"
+                                   Opacity="0.5" HorizontalAlignment="Center"/>
+                        <TextBlock Text="{Binding TimerDisplay}"
+                                   FontSize="36" FontWeight="Bold"
+                                   HorizontalAlignment="Center"
+                                   Foreground="{Binding CorTimer}"/>
+                        <TextBlock Text="{Binding StatusTimer}"
+                                   FontSize="12" FontWeight="SemiBold"
+                                   HorizontalAlignment="Center"
+                                   Foreground="{Binding CorTimer}"
+                                   Margin="0,3,0,0"/>
+                        <ProgressBar Value="{Binding ProgressoTimer}"
+                                     Maximum="100" Height="5"
+                                     Margin="0,6,0,0"
+                                     Foreground="{Binding CorTimer}"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- Últimas medições -->
+                <Border Background="White" CornerRadius="8"
+                        Padding="14"
+                        Effect="{StaticResource MaterialDesignShadowDepth1}">
+                    <StackPanel>
+                        <TextBlock Text="ÚLTIMAS MEDIÇÕES"
+                                   FontSize="11" FontWeight="Bold"
+                                   Opacity="0.5" Margin="0,0,0,8"/>
+                        <ItemsControl ItemsSource="{Binding UltimasMedicoes}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border BorderBrush="#EEE" BorderThickness="0,0,0,1"
+                                            Padding="0,6">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <StackPanel Grid.Column="0">
+                                                <TextBlock Text="{Binding Produto.Nome}"
+                                                           FontWeight="SemiBold"/>
+                                                <TextBlock Text="{Binding SiloDestino.Nome}"
+                                                           FontSize="11" Opacity="0.6"/>
+                                                <Border Background="#E8F5E9" CornerRadius="4"
+                                                        Padding="4,2" Margin="0,2,0,2"
+                                                        HorizontalAlignment="Left">
+                                                    <TextBlock Text="{Binding Secador.Nome}"
+                                                               FontSize="11" FontWeight="SemiBold"
+                                                               Foreground="#2E7D32"/>
+                                                </Border>
+                                                <TextBlock Text="{Binding DataHoraSistema, StringFormat={}{0:HH:mm}}"
+                                                           FontSize="11" Opacity="0.5"/>
+                                            </StackPanel>
+                                            <TextBlock Grid.Column="1"
+                                                       Text="{Binding Umidade, StringFormat={}{0:F1}%}"
+                                                       FontSize="18" FontWeight="Bold"
+                                                       Foreground="#2E7D32"
+                                                       VerticalAlignment="Center"/>
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+        </Grid>
+
+    </ScrollViewer>
 </UserControl>
