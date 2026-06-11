@@ -10,6 +10,7 @@
 
   <ItemGroup>
     <None Remove="seedry.ico" />
+    <None Remove="seedryLogo.ico" />
   </ItemGroup>
 
   <ItemGroup>
@@ -29,7 +30,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Resource Include="seedry.ico" />
+    <Resource Include="seedryLogo.ico" />
   </ItemGroup>
 
 </Project>

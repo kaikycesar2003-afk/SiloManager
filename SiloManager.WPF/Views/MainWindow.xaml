@@ -3,7 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:md="http://materialdesigninxaml.net/winfx/xaml/themes"
         Title="Seedry"
-        Icon="pack://application:,,,/seedry.ico"
+        Icon="pack://application:,,,/seedryLogo.ico"
         Height="680" Width="1100"
         MinHeight="600" MinWidth="900"
         WindowStartupLocation="CenterScreen"
