@@ -1,36 +1,54 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <OutputType>WinExe</OutputType>
-    <TargetFramework>net10.0-windows</TargetFramework>
-    <Nullable>enable</Nullable>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <UseWPF>true</UseWPF>
-  </PropertyGroup>
+	<PropertyGroup>
+		<OutputType>WinExe</OutputType>
+		<TargetFramework>net10.0-windows</TargetFramework>
+		<Nullable>enable</Nullable>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<UseWPF>true</UseWPF>
 
-  <ItemGroup>
-    <None Remove="seedry.ico" />
-    <None Remove="seedryLogo.ico" />
-  </ItemGroup>
+		<!-- Identidade do aplicativo -->
+		<AssemblyName>SiloManager.WPF</AssemblyName>
+		<Product>Seedry</Product>
+		<Company>Seedry</Company>
+		<Description>Gestão de Umidade em Silos</Description>
+		<Copyright>Copyright © 2026 Seedry</Copyright>
+		<Version>1.0.0</Version>
+		<AssemblyVersion>1.0.0.0</AssemblyVersion>
+		<FileVersion>1.0.0.0</FileVersion>
 
-  <ItemGroup>
-    <PackageReference Include="ClosedXML" Version="0.105.0" />
-    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
-    <PackageReference Include="MaterialDesignThemes" Version="5.3.2" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.0">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
-    <PackageReference Include="QuestPDF" Version="2026.5.0" />
-  </ItemGroup>
+		<!-- Ícone do aplicativo (barra de tarefas, atalho, instalador) -->
+		<ApplicationIcon>seedry.ico</ApplicationIcon>
 
-  <ItemGroup>
-    <ProjectReference Include="..\SiloManager.Application\SiloManager.Application.csproj" />
-    <ProjectReference Include="..\SiloManager.Infrastructure\SiloManager.Infrastructure.csproj" />
-  </ItemGroup>
+		<!-- Publish: self-contained, arquivo único, win-x64 -->
+		<RuntimeIdentifier>win-x64</RuntimeIdentifier>
+		<SelfContained>true</SelfContained>
+		<PublishSingleFile>true</PublishSingleFile>
+		<IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
+		<EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
+		<DebugType>none</DebugType>
+		<DebugSymbols>false</DebugSymbols>
+	</PropertyGroup>
 
-  <ItemGroup>
-    <Resource Include="seedryLogo.ico" />
-  </ItemGroup>
+	<ItemGroup>
+		<!-- Inclui o ícone no projeto como resource embarcado -->
+		<Resource Include="seedryLogo.ico" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<PackageReference Include="ClosedXML" Version="0.105.0" />
+		<PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
+		<PackageReference Include="MaterialDesignThemes" Version="5.3.2" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.0">
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
+		<PackageReference Include="QuestPDF" Version="2026.5.0" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\SiloManager.Application\SiloManager.Application.csproj" />
+		<ProjectReference Include="..\SiloManager.Infrastructure\SiloManager.Infrastructure.csproj" />
+	</ItemGroup>
 
 </Project>
