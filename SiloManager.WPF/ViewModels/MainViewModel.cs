@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.DependencyInjection;
 using SiloManager.Application.Session;
 using SiloManager.Domain.Enums;
+using System.Windows;
 using WpfApp = System.Windows.Application;
 
 namespace SiloManager.WPF.ViewModels
@@ -26,12 +27,45 @@ namespace SiloManager.WPF.ViewModels
             Navegar("Medicao");
         }
 
+        // ═══════════════════════════════════════════════════════════════════
+        //  Verifica se há medição aguardando confirmação na tela atual.
+        //  Retorna true (bloqueado) se o usuário cancelou a saída.
+        // ═══════════════════════════════════════════════════════════════════
+        private bool TemMedicaoPendente()
+        {
+            if (PaginaAtual is Views.MedicaoView view &&
+                view.DataContext is MedicaoViewModel vm &&
+                vm.LeituraRecebida)
+            {
+                var resultado = MessageBox.Show(
+                    "Há uma medição aguardando confirmação.\n\n" +
+                    "Deseja descartar a leitura e continuar?",
+                    "Medição pendente",
+                    MessageBoxButton.YesNo,
+                    MessageBoxImage.Warning,
+                    MessageBoxResult.No);
+
+                if (resultado != MessageBoxResult.Yes)
+                    return true; // bloqueado — usuário optou por ficar
+
+                // Usuário confirmou descarte — limpa o estado da medição
+                vm.CancelarCommand.Execute(null);
+            }
+            return false;
+        }
+
         [RelayCommand]
-        private void Nav(string pagina) => Navegar(pagina);
+        private void Nav(string pagina)
+        {
+            if (TemMedicaoPendente()) return;
+            Navegar(pagina);
+        }
 
         [RelayCommand]
         private void Sair()
         {
+            if (TemMedicaoPendente()) return;
+
             // Para o SerialService antes de encerrar sessão
             var serial = App.Services.GetRequiredService<Application.Services.SerialService>();
             serial.Desconectar();

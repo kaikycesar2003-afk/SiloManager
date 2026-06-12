@@ -172,12 +172,36 @@
                              md:HintAssist.Hint="Observação (opcional)"
                              Style="{StaticResource MaterialDesignOutlinedTextBox}"
                              Margin="0,0,0,10"/>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="8"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
 
-                    <Button Command="{Binding ConfirmarCommand}"
-                            Content="✅  CONFIRMAR MEDIÇÃO"
-                            Style="{StaticResource MaterialDesignRaisedButton}"
-                            HorizontalAlignment="Stretch"
-                            Height="44" FontSize="14" FontWeight="Bold"/>
+                        <Button Grid.Column="0"
+            Command="{Binding CancelarCommand}"
+            Content="✖  CANCELAR"
+            Height="44" FontSize="13"
+            HorizontalAlignment="Stretch">
+                            <Button.Style>
+                                <Style BasedOn="{StaticResource MaterialDesignRaisedButton}"
+                   TargetType="Button">
+                                    <Setter Property="Background" Value="#C62828"/>
+                                    <Setter Property="BorderBrush" Value="#C62828"/>
+                                    <Setter Property="Foreground" Value="White"/>
+                                </Style>
+                            </Button.Style>
+                        </Button>
+
+                        <Button Grid.Column="2"
+            Command="{Binding ConfirmarCommand}"
+            Content="✅  CONFIRMAR"
+            Style="{StaticResource MaterialDesignRaisedButton}"
+            HorizontalAlignment="Stretch"
+            Height="44" FontSize="13" FontWeight="Bold"/>
+                    </Grid>
+
                 </StackPanel>
             </Border>
 

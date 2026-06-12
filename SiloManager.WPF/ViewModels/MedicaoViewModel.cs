@@ -399,6 +399,13 @@ namespace SiloManager.WPF.ViewModels
             await AvaliarTimerSecadorAsync();
         }
 
+        [RelayCommand]
+        private void Cancelar()
+        {
+            LimparLeitura(manterSecador: true);
+            SecadorHabilitado = true;
+        }
+
         // ═══════════════════════════════════════════════════════════════════
         //  AUXILIARES
         // ═══════════════════════════════════════════════════════════════════

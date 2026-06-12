@@ -18,7 +18,7 @@
 		<FileVersion>1.0.0.0</FileVersion>
 
 		<!-- Ícone do aplicativo (barra de tarefas, atalho, instalador) -->
-		<ApplicationIcon>seedry.ico</ApplicationIcon>
+		<ApplicationIcon>seedryLogo.ico</ApplicationIcon>
 
 		<!-- Publish: self-contained, arquivo único, win-x64 -->
 		<RuntimeIdentifier>win-x64</RuntimeIdentifier>
@@ -31,8 +31,7 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<!-- Inclui o ícone no projeto como resource embarcado -->
-		<Resource Include="seedryLogo.ico" />
+	  <None Remove="seedryLogo.ico" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -49,6 +48,10 @@
 	<ItemGroup>
 		<ProjectReference Include="..\SiloManager.Application\SiloManager.Application.csproj" />
 		<ProjectReference Include="..\SiloManager.Infrastructure\SiloManager.Infrastructure.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Resource Include="seedryLogo.ico" />
 	</ItemGroup>
 
 </Project>
