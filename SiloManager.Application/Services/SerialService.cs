@@ -73,7 +73,10 @@ namespace SiloManager.Application.Services
             while (linha.Contains("  ")) linha = linha.Replace("  ", " ");
 
             // Formato Gehaka: "1139 ; 12.97 ; ... ; Soja ; ... ; G810-I ; ... ; 15051903001012 ; 18:15:07 ; 26/05/26"
-            var campos = linha.Split(" ; ");
+            //var campos = linha.Split(" ; ");
+            var campos = linha.Split(';')
+                  .Select(c => c.Trim())
+                  .ToArray();
             if (campos.Length < 15) return;
 
             try
