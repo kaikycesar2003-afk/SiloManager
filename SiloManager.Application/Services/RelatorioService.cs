@@ -9,7 +9,7 @@ namespace SiloManager.Application.Services
         public int? ProdutoId { get; set; }
         public int? SiloId { get; set; }
         public int? UsuarioId { get; set; }
-        public int? SecadorId { get; set; }          // ← adicionado para filtro direto por ID
+        public int? SecadorId { get; set; }          // restaurado — filtro direto por ID
         public string? ProdutoNome { get; set; }
         public string? SiloNome { get; set; }
         public string? SecadorNome { get; set; }
@@ -27,10 +27,11 @@ namespace SiloManager.Application.Services
         public string Status { get; set; } = string.Empty;
         public string Equipamento { get; set; } = string.Empty;
         public string Secador { get; set; } = string.Empty;
-        public int? SecadorId { get; set; }          // ← adicionado para groupby confiável
+        public int? SecadorId { get; set; }          // restaurado — groupby confiável
         public string SiloDestino { get; set; } = string.Empty;
         public string Intervalo { get; set; } = string.Empty;
         public string Observacao { get; set; } = string.Empty;
+        public double? GrauSecador { get; set; }      // v1.2.0
         public bool IsRetrabalho { get; set; }
     }
 
@@ -78,11 +79,14 @@ namespace SiloManager.Application.Services
                     SiloDestino = m.SiloDestino?.Nome ?? "—",
                     Intervalo = intervalo,
                     Observacao = m.Observacao ?? string.Empty,
+                    GrauSecador = m.GrauSecador,
                     IsRetrabalho = m.IsRetrabalho
                 });
             }
 
-            return resultado;
+            // Mantém a ordenação mais recente primeiro para exibição,
+            // já que o cálculo acima depende de ordem cronológica ascendente
+            return resultado.OrderByDescending(r => r.DataHora).ToList();
         }
 
         // Média de intervalo calculada por secador/dia
@@ -113,6 +117,7 @@ namespace SiloManager.Application.Services
 
         private static string CalcularStatus(Medicao m)
         {
+            if (m.IsRetrabalho) return "Rodízio";
             if (m.Produto == null) return "—";
             if (m.Umidade < m.Produto.UmidadeMinima) return "Crítico";
             if (m.Umidade <= m.Produto.UmidadeMaxima) return "Ideal";
@@ -123,9 +128,9 @@ namespace SiloManager.Application.Services
         {
             var ts = TimeSpan.FromSeconds(segundos);
             if (ts.TotalHours >= 1)
-                return $"{(int)ts.TotalHours}h {ts.Minutes}min";
+                return $"{(int)ts.TotalHours}h {ts.Minutes:00}min";
             if (ts.TotalMinutes >= 1)
-                return $"{(int)ts.TotalMinutes}min {ts.Seconds}s";
+                return $"{(int)ts.TotalMinutes}min {ts.Seconds:00}s";
             return $"{ts.Seconds}s";
         }
     }

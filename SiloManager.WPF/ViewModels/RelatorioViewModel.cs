@@ -255,8 +255,11 @@ namespace SiloManager.WPF.ViewModels
             var siloAtual = silos.FirstOrDefault(s => s.Nome == dto.SiloDestino);
             var secadorAtual = secadores.FirstOrDefault(s => s.Nome == dto.Secador);
 
+            // v1.2.0: passa GrauSecador atual para a janela de edição
             var janela = new Views.EdicaoMedicaoWindow(
-                dto.Umidade, dto.Observacao,
+                dto.Umidade,
+                dto.GrauSecador,          // <-- novo parâmetro
+                dto.Observacao,
                 produtos, silos, secadores,
                 produtoAtual, siloAtual, secadorAtual);
 
@@ -266,6 +269,7 @@ namespace SiloManager.WPF.ViewModels
             if (!janela.Confirmado) return;
 
             medicao.Umidade = janela.UmidadeEditada ?? medicao.Umidade;
+            medicao.GrauSecador = janela.GrauSecadorEditado; // v1.2.0
             medicao.ProdutoId = janela.ProdutoEditado?.Id ?? medicao.ProdutoId;
             medicao.SiloDestinoId = janela.SiloEditado?.Id ?? medicao.SiloDestinoId;
             medicao.SecadorId = janela.SecadorEditado?.Id;

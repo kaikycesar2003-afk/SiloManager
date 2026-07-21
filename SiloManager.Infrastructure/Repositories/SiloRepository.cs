@@ -13,10 +13,16 @@ namespace SiloManager.Infrastructure.Repositories
             await _set.Where(s =>
                 s.EmpresaId == empresaId &&
                 s.Ativo &&
-                (s.ProdutoId == produtoId || s.IsRetrabalho))
+                (s.ProdutoId == produtoId   // silos do produto detectado
+                 || s.IsRetrabalho          // silos de retrabalho/rodízio
+                 || s.ProdutoId == null))   // silos sem produto (ex: Carregamento)
+            .OrderBy(s => s.IsRetrabalho)   // normais primeiro, retrabalho depois
+            .ThenBy(s => s.Nome)
             .ToListAsync();
 
         public async Task<IEnumerable<Silo>> GetByEmpresaAsync(int empresaId) =>
-            await _set.Where(s => s.EmpresaId == empresaId && s.Ativo).ToListAsync();
+            await _set.Where(s => s.EmpresaId == empresaId && s.Ativo)
+                      .OrderBy(s => s.Nome)
+                      .ToListAsync();
     }
 }

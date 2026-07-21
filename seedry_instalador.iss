@@ -10,7 +10,7 @@
 ; ============================================================
 
 #define AppName        "Seedry"
-#define AppVersion     "1.0.0"
+#define AppVersion     "1.2.0"
 #define AppPublisher   "Seedry"
 #define AppURL         "https://seedry.com.br"
 #define AppExeName     "SiloManager.WPF.exe"

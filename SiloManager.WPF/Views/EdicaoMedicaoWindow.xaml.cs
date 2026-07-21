@@ -1,4 +1,5 @@
 ﻿using SiloManager.Domain.Entities;
+using System.Globalization;
 using System.Windows;
 
 namespace SiloManager.WPF.Views
@@ -6,6 +7,7 @@ namespace SiloManager.WPF.Views
     public partial class EdicaoMedicaoWindow : Window
     {
         public double? UmidadeEditada { get; private set; }
+        public double? GrauSecadorEditado { get; private set; }
         public Produto? ProdutoEditado { get; private set; }
         public Silo? SiloEditado { get; private set; }
         public Secador? SecadorEditado { get; private set; }
@@ -14,6 +16,7 @@ namespace SiloManager.WPF.Views
 
         public EdicaoMedicaoWindow(
             double umidadeAtual,
+            double? grauSecadorAtual,
             string observacaoAtual,
             IEnumerable<Produto> produtos,
             IEnumerable<Silo> silos,
@@ -25,6 +28,7 @@ namespace SiloManager.WPF.Views
             InitializeComponent();
 
             TxtUmidade.Text = umidadeAtual.ToString("F2");
+            TxtGrauSecador.Text = grauSecadorAtual?.ToString("F1") ?? string.Empty;
             TxtObservacao.Text = observacaoAtual;
 
             CboProduto.ItemsSource = produtos.ToList();
@@ -45,7 +49,24 @@ namespace SiloManager.WPF.Views
                 return;
             }
 
+            double? grauSecador = null;
+            if (!string.IsNullOrWhiteSpace(TxtGrauSecador.Text))
+            {
+                if (!double.TryParse(
+                        TxtGrauSecador.Text.Replace(',', '.'),
+                        NumberStyles.Any,
+                        CultureInfo.InvariantCulture,
+                        out var g) || g <= 0)
+                {
+                    MessageBox.Show("Grau do secador inválido. Informe um número positivo (ex: 80.5).",
+                        "Atenção", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return;
+                }
+                grauSecador = g;
+            }
+
             UmidadeEditada = umidade;
+            GrauSecadorEditado = grauSecador;
             ProdutoEditado = CboProduto.SelectedItem as Produto;
             SiloEditado = CboSilo.SelectedItem as Silo;
             SecadorEditado = CboSecador.SelectedItem as Secador;

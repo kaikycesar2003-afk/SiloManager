@@ -24,7 +24,7 @@ namespace SiloManager.Application.Services
             _configRepo = configRepo;
         }
 
-        // Timer por secador — se secadorId informado, verifica só aquele secador
+        // Timer por secador
         public async Task<TimeSpan?> VerificarTimerAsync(int empresaId, int? secadorId = null)
         {
             var config = await _configRepo.GetByEmpresaAsync(empresaId);
@@ -34,7 +34,6 @@ namespace SiloManager.Application.Services
 
             if (secadorId.HasValue)
             {
-                // Timer individual por secador
                 var todasMedicoes = await _medicaoRepo.GetByFiltroAsync(
                     empresaId, DateTime.Today, DateTime.Now);
                 ultima = todasMedicoes
@@ -55,25 +54,22 @@ namespace SiloManager.Application.Services
             return restante > TimeSpan.Zero ? restante : null;
         }
 
-        // Calcula o status do semáforo baseado no produto cadastrado
         public StatusUmidade CalcularStatus(Produto produto, double umidade)
         {
-            if (umidade < produto.UmidadeMinima) return StatusUmidade.Critico;  // muito seco
-            if (umidade <= produto.UmidadeMaxima) return StatusUmidade.Ideal;    // no range
-            return StatusUmidade.Atencao;                                         // úmido demais
+            if (umidade < produto.UmidadeMinima) return StatusUmidade.Critico;
+            if (umidade <= produto.UmidadeMaxima) return StatusUmidade.Ideal;
+            return StatusUmidade.Atencao;
         }
 
-        // Enriquece o DTO da serial com dados do banco (produto e status)
         public async Task<LeituraSerialDto> EnriquecerLeituraAsync(LeituraSerialDto dto)
         {
             var produto = await _produtoRepo.GetByNomeAsync(dto.NomeProduto);
             if (produto is not null)
                 dto.Status = CalcularStatus(produto, dto.Umidade);
-
             return dto;
         }
 
-        // Salva a medição confirmada pelo operador
+        // v1.2.0 — adicionado parâmetro grauSecador (obrigatório na UI, nullable no banco)
         public async Task<Medicao> SalvarMedicaoAsync(
             int empresaId,
             int produtoId,
@@ -84,12 +80,12 @@ namespace SiloManager.Application.Services
             string dadosBrutos,
             DateTime dataHoraEquipamento,
             string? observacao = null,
-            int? secadorId = null)
+            int? secadorId = null,
+            double? grauSecador = null)
         {
             var sessao = SessaoUsuario.Atual
                 ?? throw new InvalidOperationException("Nenhum usuário logado.");
 
-            // Calcula intervalo desde a última medição
             var ultima = await _medicaoRepo.GetUltimaGeralAsync(empresaId);
             int? intervalo = ultima is null
                 ? null
@@ -104,6 +100,7 @@ namespace SiloManager.Application.Services
                 SiloDestinoId = siloDestinoId,
                 SecadorId = secadorId,
                 Umidade = umidade,
+                GrauSecador = grauSecador,
                 DataHoraSistema = DateTime.Now,
                 DataHoraEquipamento = dataHoraEquipamento,
                 IntervaloSegundos = intervalo,

@@ -13,9 +13,12 @@
         // Valores da leitura
         public double Umidade { get; set; }
 
+        // Grau do secador informado pelo operador (obrigatório na confirmação)
+        public double? GrauSecador { get; set; }
+
         // Timestamps
-        public DateTime DataHoraSistema { get; set; }  // relógio da máquina ← principal
-        public DateTime? DataHoraEquipamento { get; set; } // vinda do serial ← conferência
+        public DateTime DataHoraSistema { get; set; }
+        public DateTime? DataHoraEquipamento { get; set; }
 
         // Intervalo desde a medição anterior (em segundos)
         public int? IntervaloSegundos { get; set; }

@@ -11,6 +11,7 @@ namespace SiloManager.Infrastructure.Data.Configurations
             b.ToTable("Medicoes");
             b.HasKey(m => m.Id);
             b.Property(m => m.Umidade).IsRequired();
+            b.Property(m => m.GrauSecador);  // nullable — adicionado em v1.2.0
             b.Property(m => m.DataHoraSistema).IsRequired();
             b.Property(m => m.DataHoraEquipamento);
             b.Property(m => m.IntervaloSegundos);

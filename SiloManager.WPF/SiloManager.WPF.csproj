@@ -13,9 +13,9 @@
 		<Company>Seedry</Company>
 		<Description>Gestão de Umidade em Silos</Description>
 		<Copyright>Copyright © 2026 Seedry</Copyright>
-		<Version>1.0.0</Version>
-		<AssemblyVersion>1.0.0.0</AssemblyVersion>
-		<FileVersion>1.0.0.0</FileVersion>
+		<Version>1.2.0</Version>
+		<AssemblyVersion>1.2.0.0</AssemblyVersion>
+		<FileVersion>1.2.0.0</FileVersion>
 
 		<!-- Ícone do aplicativo (barra de tarefas, atalho, instalador) -->
 		<ApplicationIcon>seedryLogo.ico</ApplicationIcon>

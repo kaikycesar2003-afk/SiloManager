@@ -374,7 +374,11 @@
                     <DataGridTextColumn Header="Produto"
                                         Binding="{Binding Produto}"
                                         Width="*"/>
-
+                    <!-- Grau do Secador -->
+                    <DataGridTextColumn Header="Grau Secador"
+                    Binding="{Binding GrauSecador, StringFormat={}{0:F1}°}"
+                    Width="90"/>
+                    
                     <!-- Umidade -->
                     <DataGridTextColumn Header="Umidade"
                                         Binding="{Binding Umidade, StringFormat={}{0:F1}%}"

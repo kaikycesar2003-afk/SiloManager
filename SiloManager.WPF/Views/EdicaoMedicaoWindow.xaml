@@ -3,7 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:md="http://materialdesigninxaml.net/winfx/xaml/themes"
         Title="Editar Medição"
-        Height="560" Width="480"
+        Height="620" Width="480"
         WindowStartupLocation="CenterOwner"
         ResizeMode="NoResize"
         Background="#F5F0E8">
@@ -15,7 +15,7 @@
             <RowDefinition Height="72"/>
         </Grid.RowDefinitions>
 
-        <!-- ═══ Header ═══ -->
+        <!-- Header -->
         <Border Grid.Row="0"
                 Background="{DynamicResource MaterialDesign.Brush.Primary}"
                 Padding="24,0">
@@ -28,7 +28,7 @@
             </StackPanel>
         </Border>
 
-        <!-- ═══ Formulário ═══ -->
+        <!-- Formulário -->
         <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
             <StackPanel Margin="24,20,24,8">
 
@@ -44,6 +44,19 @@
                                  Style="{StaticResource MaterialDesignOutlinedTextBox}"
                                  FontSize="24" FontWeight="Bold"
                                  Foreground="{DynamicResource MaterialDesign.Brush.Primary}"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- Grau do Secador -->
+                <Border Background="White" CornerRadius="8" Padding="16"
+                        Margin="0,0,0,12"
+                        Effect="{StaticResource MaterialDesignShadowDepth1}">
+                    <StackPanel>
+                        <TextBlock Text="GRAU DO SECADOR (°C)" FontSize="10"
+                                   FontWeight="Bold" Opacity="0.5" Margin="0,0,0,8"/>
+                        <TextBox x:Name="TxtGrauSecador"
+                                 md:HintAssist.Hint="Ex: 80 ou 80.5"
+                                 Style="{StaticResource MaterialDesignOutlinedTextBox}"/>
                     </StackPanel>
                 </Border>
 
@@ -97,7 +110,7 @@
             </StackPanel>
         </ScrollViewer>
 
-        <!-- ═══ Botões ═══ -->
+        <!-- Botões -->
         <Border Grid.Row="2" Background="White"
                 BorderBrush="#E0E0E0" BorderThickness="0,1,0,0"
                 Padding="24,0">
@@ -106,13 +119,11 @@
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
-
                 <Button Grid.Column="0"
                         Content="CANCELAR"
                         Style="{StaticResource MaterialDesignOutlinedButton}"
                         Height="42" Margin="0,0,8,0"
                         Click="BtnCancelar_Click"/>
-
                 <Button Grid.Column="1"
                         Content="SALVAR ALTERAÇÕES"
                         Style="{StaticResource MaterialDesignRaisedButton}"
@@ -120,6 +131,5 @@
                         Click="BtnSalvar_Click"/>
             </Grid>
         </Border>
-
     </Grid>
 </Window>
